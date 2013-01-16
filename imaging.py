@@ -56,7 +56,8 @@ def run_ndppp(parset_filename, parset_keys):
 
 
 def run_calibrate_standalone(parset_filename, input_ms, skymodel):
-    return run_process("calibrate-stand-alone", input_ms, parset_filename, skymodel)
+    run_process("calibrate-stand-alone", input_ms, parset_filename, skymodel)
+    return input_ms
 
 
 def find_bad_stations(msname):
@@ -89,7 +90,7 @@ def strip_stations(msin, msout, stationlist):
     output.copy(msout, deep=True)
 
 
-def estimate_noise(msin, cellsize, robust, maxbl, wmax, wplanes):
+def estimate_noise(msin, parset, maxbl):
     noise_image = mkdtemp(dir=scratch)
 
     # Default parameters -- hardcoded in Antonia's script
@@ -98,6 +99,13 @@ def estimate_noise(msin, cellsize, robust, maxbl, wmax, wplanes):
     npix = 256
     operation = "image"
     stokes = "IQUV"
+    box_size = 25
+
+    awimager_parset = lofar.parameterset.parameterset(parset)
+    cellsize = awimager_parset.getString("cellsize")
+    robust = awimager_parset.getFloat("robust")
+    wmax = awimager_parset.getFloat("wmax")
+    wplanes = awimager_parset.getInt("wprojplanes")
 
     run_process(
         "awimager",
@@ -117,7 +125,6 @@ def estimate_noise(msin, cellsize, robust, maxbl, wmax, wplanes):
     )
 
     t = table(noise_image)
-    box_size = 25
     # Why is there a 3 in here? Are we calculating the noise in Stokes V?
     # (this is lifted from Antonia, which is lifted from George, ...!)
     noise = t.getcol('map')[0, 0, 3, npix/2-box_size:npix/2+box_size, npix/2-box_size:npix/2+box_size].std()
@@ -125,10 +132,16 @@ def estimate_noise(msin, cellsize, robust, maxbl, wmax, wplanes):
     return noise
 
 
-def make_mask(msin, skymodel, cellsize, npix):
+def make_mask(msin, parset, skymodel):
     mask_image = mkdtemp(dir=scratch)
     mask_sourcedb = mkdtemp(dir=scratch)
     operation = "empty"
+
+    awimager_parset = lofar.parameterset.parameterset(parset)
+    cellsize = awimager_parset.getString("cellsize")
+    npix = awimager_parset.getFloat("npix")
+    stokes = awimager_parset.getString("stokes")
+
     run_process(
         "awimager",
         "cellsize=%s" % (cellsize,),
@@ -136,13 +149,7 @@ def make_mask(msin, skymodel, cellsize, npix):
         "npix=%d" % (npix,),
         "operation=%s" % (operation,),
         "image=%s" % (mask_image,),
-        "nchan=10",
-        "niter=0",
-        "robust=0",
-        "select=\"sumsqr(UVW[:2])<%.1e\"" % (3000**2,),
-        "stokes=I",
-        "wprojplanes=129",
-        "wmax=3000",
+        "stokes=%s" % (stokes,)
     )
     run_process(
         "makesourcedb",
@@ -167,9 +174,14 @@ def get_parset_subset(parset, prefix):
 
 
 if __name__ == "__main__":
-    # We take the name of a parset containing the data files to process as our
-    # command line argument.
+    # Out single command line argument is a parset containing all
+    # configuration information we'll need.
     input_parset = lofar.parameterset.parameterset(sys.argv[1])
+
+    # Change to appropriate working directory for logs, etc.
+    os.chdir(input_parset.getString("working_dir"))
+
+    # List of input files.
     msin = input_parset.getStringVector("msin")
 
     # We'll run as many simultaneous jobs as we have CPUs
@@ -188,6 +200,7 @@ if __name__ == "__main__":
         )
     datafiles = pool.map(first_ndppp, msin)
 
+    # Calibrate each subband separately
     bbs_parset = get_parset_subset(input_parset, "bbs")
     skymodel = input_parset.getString("skymodel")
     def calibrate_standalone(ms):
@@ -195,6 +208,7 @@ if __name__ == "__main__":
         return ms
     datafiles = pool.map(calibrate_standalone, datafiles)
 
+    # Combine with NDPPP
     combined_ms = os.path.join(scratch, "combined.MS")
     run_ndppp(get_parset_subset(input_parset, "combine"),
         {
@@ -203,21 +217,17 @@ if __name__ == "__main__":
         }
     )
 
+    # Strip bad stations
     bad_stations = find_bad_stations(combined_ms)
     stripped_ms = os.path.join(scratch, "stripped.MS")
     strip_stations(combined_ms, stripped_ms, bad_stations)
 
+    # Image
     maxbl = input_parset.getFloat("maxbl")
-    cellsize = input_parset.getString("awimager.cellsize")
-    robust = input_parset.getFloat("awimager.robust")
-    wmax = input_parset.getFloat("awimager.wmax")
-    wplanes = input_parset.getInt("awimager.wprojplanes")
-    npix = input_parset.getFloat("awimager.npix")
-
-    threshold = input_parset.getFloat("noise_multiplier") * estimate_noise(stripped_ms, cellsize, robust, maxbl, wmax, wplanes)
-    mask = make_mask(stripped_ms, skymodel, cellsize, npix)
-
     aw_parset_name = get_parset_subset(input_parset, "awimager")
+    threshold = input_parset.getFloat("noise_multiplier") * estimate_noise(stripped_ms, aw_parset_name, maxbl)
+    mask = make_mask(stripped_ms, aw_parset_name, skymodel)
+
     print run_awimager(aw_parset_name,
         {
             "ms": stripped_ms,

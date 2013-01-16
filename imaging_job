@@ -1,0 +1,8 @@
+#PBS -lwalltime=0:30:00
+                         # 30 minutes wall-clock
+                         # time allowed for this job
+#PBS -lnodes=1:ppn=8
+                         # 1 node for this job
+#PBS -S /bin/bash
+source /home/jswinban/sw/init.sh
+time python /home/jswinban/pipeline/imaging.py /home/jswinban/pipeline/imaging.parset

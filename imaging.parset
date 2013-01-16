@@ -1,7 +1,8 @@
 # Control of the imaging script
 msin = [/home/jswinban/pipeline/L40022_SAP002_SB200_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB201_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB202_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB203_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB204_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB205_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB206_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB207_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB208_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB209_uv.MS]
 skymodel = /home/jswinban/pipeline/lsc.skymodel
-output = /home/jswinban/pipeline/output_image
+working_dir = /home/jswinban/pipeline
+output = /home/jswinban/pipeline/L40022_SAP002.img
 
 # Per-subband NDPPP settings
 ndppp.msin.autoweight = true
@@ -63,7 +64,7 @@ bbs.Step.solve.Solve.Options.ColFactor = 1e-9
 bbs.Step.solve.Solve.Options.LMFactor = 1
 bbs.Step.solve.Solve.Options.BalancedEqs = F
 bbs.Step.solve.Solve.Options.UseSVD = T
-bbs.Step.solve.Output.Column = 
+bbs.Step.solve.Output.Column =
 bbs.Step.correct.Operation = CORRECT
 bbs.Step.correct.Model.Sources = []
 bbs.Step.correct.Model.Gain.Enable = T
