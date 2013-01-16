@@ -1,0 +1,92 @@
+# Control of the imaging script
+msin = [/home/jswinban/pipeline/L40022_SAP002_SB200_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB201_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB202_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB203_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB204_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB205_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB206_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB207_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB208_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB209_uv.MS]
+skymodel = /home/jswinban/pipeline/lsc.skymodel
+output = /home/jswinban/pipeline/output_image
+
+# Per-subband NDPPP settings
+ndppp.msin.autoweight = true
+ndppp.msin.datacolumn=DATA
+ndppp.msout.datacolumn=DATA
+ndppp.msin.startchan=2
+ndppp.msin.nchan=60
+ndppp.uselogger = True
+ndppp.steps=[preflag, aoflagger, average]
+ndppp.preflag.type = preflagger
+ndppp.preflag.corrtype=auto
+ndppp.aoflagger.type = aoflagger
+ndppp.aoflagger.timewindow=0
+ndppp.aoflagger.pulsar=F
+ndppp.aoflagger.pedantic=F
+ndppp.aoflagger.overlapperc = 0
+ndppp.aoflagger.overlapmax = 0
+ndppp.aoflagger.memoryperc = 50
+ndppp.aoflagger.memorymax=0
+ndppp.aoflagger.keepstatistics=T
+ndppp.aoflagger.autocorr=F
+ndppp.aoflagger.count.save=FALSE
+ndppp.aoflagger.count.path=-
+ndppp.average.type=squash
+ndppp.average.timestep=10
+ndppp.average.freqstep=60
+
+# Combining subbands
+combine.msin.missingdata=true
+combine.msin.orderms=false
+combine.msin.datacolumn=CORRECTED_DATA
+combine.msin.baseline=[CR]S*&
+combine.steps=[]
+
+# BBS settings
+bbs.Strategy.InputColumn = DATA
+bbs.Strategy.ChunkSize = 0
+bbs.Strategy.Baselines = [CR]S*&
+bbs.Strategy.UseSolver = F
+bbs.Strategy.Correlations = []
+bbs.Strategy.Steps = [solve,correct]
+bbs.Step.solve.Operation = SOLVE
+bbs.Step.solve.Model.Sources = []
+bbs.Step.solve.Model.Cache.Enable = T
+bbs.Step.solve.Model.Gain.Enable = T
+bbs.Step.solve.Model.Beam.Enable = T
+bbs.Step.solve.Solve.Parms = ["Gain:0:0:*","Gain:1:1:*"]
+bbs.Step.solve.Solve.ExclParms = []
+bbs.Step.solve.Solve.CalibrationGroups = []
+bbs.Step.solve.Solve.CellSize.Freq = 0
+bbs.Step.solve.Solve.CellSize.Time = 1
+bbs.Step.solve.Solve.CellChunkSize = 20
+bbs.Step.solve.Solve.UVRange = []
+bbs.Step.solve.Solve.PropagateSolutions = T
+bbs.Step.solve.Solve.Options.MaxIter = 0
+bbs.Step.solve.Solve.Options.EpsValue = 1e-4
+bbs.Step.solve.Solve.Options.EpsDerivative = 1e-4
+bbs.Step.solve.Solve.Options.ColFactor = 1e-9
+bbs.Step.solve.Solve.Options.LMFactor = 1
+bbs.Step.solve.Solve.Options.BalancedEqs = F
+bbs.Step.solve.Solve.Options.UseSVD = T
+bbs.Step.solve.Output.Column = 
+bbs.Step.correct.Operation = CORRECT
+bbs.Step.correct.Model.Sources = []
+bbs.Step.correct.Model.Gain.Enable = T
+bbs.Step.correct.Model.Beam.Enable = T
+bbs.Step.correct.Output.Column = CORRECTED_DATA
+
+# AWimager parameters
+# (lifted from Antonia's tkp_imager.parset on lce051)
+# awimager.XXX parameters are transplanted directly into an awimager parset
+# others are used for calculations to generate the awimager parset
+noise_multiplier = 10          # float
+maxbl = 3000                   # float
+awimager.robust = 0            # float
+awimager.wmax = 3000           # float
+awimager.cellsize = 90arcsec   # str
+awimager.npix = 512            # int
+awimager.wprojplanes = 129     # int
+awimager.niter = 100000        # int
+awimager.StepApplyElement = 1  # int
+awimager.timewindow = 300      # int
+awimager.padding = 1.3         # float
+awimager.cyclefactor = 1.0     # float
+awimager.data = CORRECTED_DATA # str
+awimager.nchan = 10            # int
+awimager.operation = csclean   # str
+awimager.stokes = I            # str
