@@ -8,6 +8,8 @@ import lofar.parameterset
 from multiprocessing import cpu_count
 from multiprocessing.pool import ThreadPool
 
+from shutil import copytree
+from itertools import chain
 from tempfile import mkstemp, mkdtemp
 from contextlib import contextmanager
 
@@ -155,40 +157,47 @@ def get_parset_subset(parset, prefix):
 
 
 if __name__ == "__main__":
-    # Out single command line argument is a parset containing all
+    # Our single command line argument is a parset containing all
     # configuration information we'll need.
     input_parset = lofar.parameterset.parameterset(sys.argv[1])
 
     # Change to appropriate working directory for logs, etc.
     os.chdir(input_parset.getString("working_dir"))
 
-    # List of input files.
-    msin = input_parset.getStringVector("msin")
+    # Lists of input files.
+    ms_target = input_parset.getStringVector("ms_target")
+    ms_cal = input_parset.getStringVector("ms_cal")
+    assert(len(ms_target) == len(ms_cal))
+
+    # Copy to scratch directory
+    for ms_name in chain(ms_target, ms_cal):
+        copytree(ms_name, os.path.join(scratch, os.path.basename(ms_name)))
+    ms_target = [os.path.join(scratch, os.path.basename(ms)) for ms in ms_target]
+    ms_cal = [os.path.join(scratch, os.path.basename(ms)) for ms in ms_cal]
 
     # We'll run as many simultaneous jobs as we have CPUs
     pool = ThreadPool(cpu_count())
 
-    # Initial NDPPP run to flag & compress the visibilities
-    ndppp_parset = get_parset_subset(input_parset, "ndppp.parset")
-    def first_ndppp(ms):
-        return run_ndppp(ndppp_parset,
-            {
-                "msin": ms,
-                "msout": os.path.join(scratch, os.path.basename(ms)),
-#                "aoflagger.strategy": os.path.join(os.getenv("LOFARROOT"), "share/rfistrategies/LBAdefault")
-            },
-            initscript=input_parset.getString("ndppp.initscript")
+    # Calibration of each calibrator subband
+    calcal_parset = get_parset_subset(input_parset, "calcal.parset")
+    # TODO: Select correct source
+    calcal_skymodel = input_parset.getString("calcal.skymodel")
+    calcal_initscript = input_parset.getString("calcal.initscript")
+    def calibrate_calibrator(cal):
+        run_calibrate_standalone(calcal_parset, cal, calcal_skymodel, initscript=calcal_initscript)
+        # TODO: Do we need edit_parmdb.py?
+    pool.map(calibrate_standalone, ms_cal)
 
-        )
-    datafiles = pool.map(first_ndppp, msin)
-
-    # Calibrate each subband separately
-    bbs_parset = get_parset_subset(input_parset, "bbs.parset")
-    skymodel = input_parset.getString("skymodel")
-    def calibrate_standalone(ms):
-        run_calibrate_standalone(bbs_parset, ms, skymodel, initscript=input_parset.getString("bbs.initscript"))
-        return ms
-    datafiles = pool.map(calibrate_standalone, datafiles)
+    # Transfer calibration solutions to targets
+    transfer_parset = get_parset_subset(input_parset, "transfer.parset")
+    transfer_skymodel = input_parset.getString("transfer.skymodel")
+    transfer_initscript = input_parset.getString("transfer.initscript")
+    def transfer_calibration(ms_pair):
+        cal, target = ms_pair
+        fd, parmdb_name = mkstemp(dir=scratch)
+        run_process("parmexportcal", "in=%s/instrument/" % (cal,), "out=%s" % (parmdb_name,), initscript=transfer_initscript)
+        run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel, initscript=transfer_initscript)
+    pool.map(transfer_calibration, zip(ms_cal, ms_target))
 
     # Combine with NDPPP
     combined_ms = os.path.join(scratch, "combined.MS")
@@ -196,12 +205,24 @@ if __name__ == "__main__":
         {
             "msin": str(datafiles),
             "msout": combined_ms
-        }
+        },
+        initscript=input_parset.getString("combine.initscript")
     )
 
-    # Strip bad stations
+    # Phase only calibration of combined target subbands
+    run_calibrate_standalone(
+        get_parset_subsect(input_parset, "phaseonly.parset"),
+        combined_ms,
+        input_parset.getString("phaseonly.skymodel"),
+        initscript=input_parset.getString("phaseonly.initscript")
+    )
+
+    # Strip bad stations.
+    # Note that the combined, calibrated, stripped MS is one of our output
+    # data products, so we save that with the name specified in the parset.
     bad_stations = find_bad_stations(combined_ms, initscript=input_parset.getString("badstations.initscript"))
-    stripped_ms = os.path.join(scratch, "stripped.MS")
+    stripped_ms = input_parset.getString("output_ms")
+    # TODO: Test what happens if there are no bad stations.
     strip_stations(combined_ms, stripped_ms, bad_stations)
 
     # Image
@@ -216,6 +237,6 @@ if __name__ == "__main__":
             "mask": mask,
             "threshold": "%fJy" % (threshold,),
             "select": "\"sumsqr(UVW[:2])<%.1e\"" % (maxbl**2,),
-            "image": input_parset.getString("output")
+            "image": input_parset.getString("output_im")
         }
     )

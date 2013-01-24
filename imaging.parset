@@ -1,35 +1,59 @@
 # Control of the imaging script
-msin = [/home/jswinban/pipeline/L40022_SAP002_SB200_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB201_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB202_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB203_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB204_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB205_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB206_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB207_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB208_uv.MS, /home/jswinban/pipeline/L40022_SAP002_SB209_uv.MS]
-skymodel = /home/jswinban/pipeline/lsc.skymodel
-working_dir = /home/jswinban/pipeline
-output = /home/jswinban/pipeline/L40022_SAP002.img
 
-# Per-subband NDPPP settings
-ndppp.initscript = /home/jswinban/sw/lofarinit.sh
-ndppp.parset.msin.autoweight = true
-ndppp.parset.msin.datacolumn=DATA
-ndppp.parset.msout.datacolumn=DATA
-ndppp.parset.msin.startchan=2
-ndppp.parset.msin.nchan=60
-ndppp.parset.uselogger = True
-ndppp.parset.steps=[preflag, aoflagger, average]
-ndppp.parset.preflag.type = preflagger
-ndppp.parset.preflag.corrtype=auto
-ndppp.parset.aoflagger.type = aoflagger
-ndppp.parset.aoflagger.timewindow=0
-ndppp.parset.aoflagger.pulsar=F
-ndppp.parset.aoflagger.pedantic=F
-ndppp.parset.aoflagger.overlapperc = 0
-ndppp.parset.aoflagger.overlapmax = 0
-ndppp.parset.aoflagger.memoryperc = 50
-ndppp.parset.aoflagger.memorymax=0
-ndppp.parset.aoflagger.keepstatistics=T
-ndppp.parset.aoflagger.autocorr=F
-ndppp.parset.aoflagger.count.save=FALSE
-ndppp.parset.aoflagger.count.path=-
-ndppp.parset.average.type=squash
-ndppp.parset.average.timestep=10
-ndppp.parset.average.freqstep=60
+ms_target = [/home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB000_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB001_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB002_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB003_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB004_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB005_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB006_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB007_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB008_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB009_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB010_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB011_uv.MS.dppp]
+ms_cal = [/home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB000_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB001_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB002_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB003_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB004_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB005_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB006_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB007_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB008_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB009_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB010_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB011_uv.MS.dppp]
+working_dir = /home/jswinban/pipeline
+output_ms = /home/jswinban/pipeline/L81157_SAP0.MS
+output_im = /home/jswinban/pipeline/L81157_SAP0.img
+
+# Calibration of calibrator subbands
+calcal.initscript = /home/jswinban/sw/lofarinit.sh
+calcal.skymodel = /home/jswinban/pipeline/calibrators.skymodel
+calcal.parset.Strategy.InputColumn = DATA
+calcal.parset.Strategy.ChunkSize = 120
+calcal.parset.Strategy.Baselines = CS*&RS*;RS*&;CS*&
+calcal.parset.Strategy.UseSolver = F
+calcal.parset.Strategy.Correlations = []
+calcal.parset.Strategy.Steps = [solve,correct]
+calcal.parset.Step.solve.Operation = SOLVE
+calcal.parset.Step.solve.Model.Sources = []
+calcal.parset.Step.solve.Model.Cache.Enable = T
+calcal.parset.Step.solve.Model.Gain.Enable = T
+calcal.parset.Step.solve.Model.Beam.Enable = T
+calcal.parset.Step.solve.Solve.Parms = ["Gain:0:0:*","Gain:1:1:*"]
+calcal.parset.Step.solve.Solve.ExclParms = []
+calcal.parset.Step.solve.Solve.CalibrationGroups = []
+calcal.parset.Step.solve.Solve.CellSize.Freq = 0
+calcal.parset.Step.solve.Solve.CellSize.Time = 1
+calcal.parset.Step.solve.Solve.CellChunkSize = 20
+calcal.parset.Step.solve.Solve.PropagateSolutions = F
+calcal.parset.Step.solve.Solve.Options.MaxIter = 20
+calcal.parset.Step.solve.Solve.Options.EpsValue = 1e-9
+calcal.parset.Step.solve.Solve.Options.EpsDerivative = 1e-9
+calcal.parset.Step.solve.Solve.Options.ColFactor = 1e-9
+calcal.parset.Step.solve.Solve.Options.LMFactor = 1.0
+calcal.parset.Step.solve.Solve.Options.BalancedEqs = F
+calcal.parset.Step.solve.Solve.Options.UseSVD = T
+calcal.parset.Step.solve.Output.Column = 
+calcal.parset.Step.correct.Operation = CORRECT
+calcal.parset.Step.correct.Model.Sources = []
+calcal.parset.Step.correct.Model.Gain.Enable = T
+calcal.parset.Step.correct.Model.Beam.Enable = T
+calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
+
+# Transfer solution from calibrator to target
+transfer.initscript = /home/jswinban/sw/lofarinit.sh
+transfer.skymodel = /home/jswinban/pipeline/dummy.skymodel
+transfer.parset.Strategy.InputColumn = DATA
+transfer.parset.Strategy.ChunkSize = 120
+transfer.parset.Strategy.UseSolver = F
+transfer.parset.Strategy.Correlations = []
+transfer.parset.Strategy.Steps = [correct]
+transfer.parset.Step.correct.Operation = CORRECT
+transfer.parset.Step.correct.Model.Sources = []
+transfer.parset.Step.correct.Model.Gain.Enable = T
+transfer.parset.Step.correct.Model.Beam.Enable = T
+transfer.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # Combining subbands
 combine.initscript = /home/jswinban/sw/lofarinit.sh
@@ -42,40 +66,44 @@ combine.parset.steps=[]
 # Bad sations
 badstations.initscript = /home/jswinban/sw/lofarinit.sh
 
-# BBS settings
-bbs.initscript = /home/jswinban/sw/lofarinit.sh
-bbs.parset.Strategy.InputColumn = DATA
-bbs.parset.Strategy.ChunkSize = 0
-bbs.parset.Strategy.Baselines = [CR]S*&
-bbs.parset.Strategy.UseSolver = F
-bbs.parset.Strategy.Correlations = []
-bbs.parset.Strategy.Steps = [solve,correct]
-bbs.parset.Step.solve.Operation = SOLVE
-bbs.parset.Step.solve.Model.Sources = []
-bbs.parset.Step.solve.Model.Cache.Enable = T
-bbs.parset.Step.solve.Model.Gain.Enable = T
-bbs.parset.Step.solve.Model.Beam.Enable = T
-bbs.parset.Step.solve.Solve.Parms = ["Gain:0:0:*","Gain:1:1:*"]
-bbs.parset.Step.solve.Solve.ExclParms = []
-bbs.parset.Step.solve.Solve.CalibrationGroups = []
-bbs.parset.Step.solve.Solve.CellSize.Freq = 0
-bbs.parset.Step.solve.Solve.CellSize.Time = 1
-bbs.parset.Step.solve.Solve.CellChunkSize = 20
-bbs.parset.Step.solve.Solve.UVRange = []
-bbs.parset.Step.solve.Solve.PropagateSolutions = T
-bbs.parset.Step.solve.Solve.Options.MaxIter = 0
-bbs.parset.Step.solve.Solve.Options.EpsValue = 1e-4
-bbs.parset.Step.solve.Solve.Options.EpsDerivative = 1e-4
-bbs.parset.Step.solve.Solve.Options.ColFactor = 1e-9
-bbs.parset.Step.solve.Solve.Options.LMFactor = 1
-bbs.parset.Step.solve.Solve.Options.BalancedEqs = F
-bbs.parset.Step.solve.Solve.Options.UseSVD = T
-bbs.parset.Step.solve.Output.Column =
-bbs.parset.Step.correct.Operation = CORRECT
-bbs.parset.Step.correct.Model.Sources = []
-bbs.parset.Step.correct.Model.Gain.Enable = T
-bbs.parset.Step.correct.Model.Beam.Enable = T
-bbs.parset.Step.correct.Output.Column = CORRECTED_DATA
+# Phase-only calibration of combined target subbands
+phaseonly.initscript = /home/jswinban/sw/lofarinit.sh
+phaseonly.skymodel = /home/jswinban/pipeline/81157_sap0.skymodel
+phaseonly.parset.Strategy.InputColumn = DATA
+phaseonly.parset.Strategy.TimeRange = []
+phaseonly.parset.Strategy.Baselines = *&
+phaseonly.parset.Strategy.ChunkSize = 100
+phaseonly.parset.Strategy.UseSolver = F
+phaseonly.parset.Strategy.Steps = [solve, correct]
+phaseonly.parset.Step.solve.Operation = SOLVE
+phaseonly.parset.Step.solve.Baselines = CS*
+phaseonly.parset.Step.solve.Model.Sources = []
+phaseonly.parset.Step.solve.Model.Cache.Enable = T
+phaseonly.parset.Step.solve.Model.Phasors.Enable = T
+phaseonly.parset.Step.solve.Model.Gain.Enable = T
+phaseonly.parset.Step.solve.Model.Beam.Enable = T
+phaseonly.parset.Step.solve.Model.Beam.Mode = ARRAY_FACTOR
+phaseonly.parset.Step.solve.Solve.Mode = PHASE
+phaseonly.parset.Step.solve.Solve.Parms = ["Gain:0:0:Phase:*", "Gain:1:1:Phase:*"]
+phaseonly.parset.Step.solve.Solve.ExclParms = []
+phaseonly.parset.Step.solve.Solve.CalibrationGroups = []
+phaseonly.parset.Step.solve.Solve.CellSize.Freq = 0
+phaseonly.parset.Step.solve.Solve.CellSize.Time = 1
+phaseonly.parset.Step.solve.Solve.CellChunkSize = 10
+phaseonly.parset.Step.solve.Solve.PropagateSolutions = F
+phaseonly.parset.Step.solve.Solve.Options.MaxIter = 20
+phaseonly.parset.Step.solve.Solve.Options.EpsValue = 1e-9
+phaseonly.parset.Step.solve.Solve.Options.EpsDerivative = 1e-9
+phaseonly.parset.Step.solve.Solve.Options.ColFactor = 1e-9
+phaseonly.parset.Step.solve.Solve.Options.LMFactor = 1.0
+phaseonly.parset.Step.solve.Solve.Options.BalancedEqs = F
+phaseonly.parset.Step.solve.Solve.Options.UseSVD = T
+phaseonly.parset.Step.correct.Operation = CORRECT
+phaseonly.parset.Step.correct.Model.Sources = []
+phaseonly.parset.Step.correct.Model.Phasors.Enable  = T
+phaseonly.parset.Step.correct.Model.Gain.Enable  = T
+phaseonly.parset.Step.correct.Model.Beam.Enable  = F
+phaseonly.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # AWimager parameters
 # (lifted from Antonia's tkp_imager.parset on lce051)
