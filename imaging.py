@@ -2,8 +2,6 @@
 
 import os
 import sys
-import csv
-import subprocess
 import numpy
 import lofar.parameterset
 
@@ -15,57 +13,36 @@ from contextlib import contextmanager
 
 from pyrap.tables import table
 
+from utility import patched_parset
+from utility import run_process
+from utility import read_initscript
+
 # All temporary writes go to scratch space on the node.
 scratch = os.getenv("TMPDIR")
 
-def patch_parset(parset_filename, data, output_dir=None):
-    temp_parset = lofar.parameterset.parameterset(parset_filename)
-    for key, value in data.iteritems():
-        temp_parset.replace(key, str(value))
-    fd, output = mkstemp(dir=output_dir)
-    temp_parset.writeFile(output)
-    os.close(fd)
-    return output
-
-
-@contextmanager
-def patched_parset(parset_filename, data, output_dir=None, unlink=True):
-    filename = patch_parset(parset_filename, data, output_dir)
-    try:
-        yield filename
-    finally:
-        if unlink: os.unlink(filename)
-
-
-def run_process(executable, *args):
-    args = list(args)
-    args.insert(0, executable)
-    subprocess.check_call(args)
-
-
-def run_awimager(parset_filename, parset_keys):
+def run_awimager(parset_filename, parset_keys, initscript=None):
     with patched_parset(parset_filename, parset_keys, unlink=False) as parset:
-        run_process("awimager", parset)
+        run_process("awimager", parset, initscript=initscript)
     return parset_keys["image"]
 
 
-def run_ndppp(parset_filename, parset_keys):
+def run_ndppp(parset_filename, parset_keys, initscript=None):
     with patched_parset(parset_filename, parset_keys) as parset:
-        run_process("NDPPP", parset)
+        run_process("NDPPP", parset, initscript=initscript)
     return parset_keys["msout"]
 
 
-def run_calibrate_standalone(parset_filename, input_ms, skymodel):
-    run_process("calibrate-stand-alone", input_ms, parset_filename, skymodel)
+def run_calibrate_standalone(parset_filename, input_ms, skymodel, initscript=None):
+    run_process("calibrate-stand-alone", input_ms, parset_filename, skymodel, initscript=initscript)
     return input_ms
 
 
-def find_bad_stations(msname):
+def find_bad_stations(msname, initscript=None):
     # Using scripts developed by Martinez & Pandey
     statsdir = os.path.join(scratch, "stats")
-    run_process("asciistats.py", "-i", msname, "-r", statsdir)
+    run_process("asciistats.py", "-i", msname, "-r", statsdir, initscript=initscript)
     statsfile = os.path.join(statsdir, os.path.basename(msname) + ".stats")
-    run_process("statsplot.py", "-i", statsfile, "-o", os.path.join(scratch, "stats"))
+    run_process("statsplot.py", "-i", statsfile, "-o", os.path.join(scratch, "stats"), initscript=initscript)
     bad_stations = []
     with open(os.path.join(scratch, "stats.tab"), "r") as f:
         for line in f:
@@ -90,7 +67,7 @@ def strip_stations(msin, msout, stationlist):
     output.copy(msout, deep=True)
 
 
-def estimate_noise(msin, parset, maxbl):
+def estimate_noise(msin, parset, maxbl, initscript=None):
     noise_image = mkdtemp(dir=scratch)
 
     # Default parameters -- hardcoded in Antonia's script
@@ -121,7 +98,8 @@ def estimate_noise(msin, parset, maxbl):
         "stokes=%s" % (stokes,),
         "wmax=%f" % (wmax,),
         "wprojplanes=%d" % (wplanes,),
-        "image=%s" % (noise_image,)
+        "image=%s" % (noise_image,),
+        initscript=initscript
     )
 
     t = table(noise_image)
@@ -132,7 +110,7 @@ def estimate_noise(msin, parset, maxbl):
     return noise
 
 
-def make_mask(msin, parset, skymodel):
+def make_mask(msin, parset, skymodel, initscript=None):
     mask_image = mkdtemp(dir=scratch)
     mask_sourcedb = mkdtemp(dir=scratch)
     operation = "empty"
@@ -149,19 +127,22 @@ def make_mask(msin, parset, skymodel):
         "npix=%d" % (npix,),
         "operation=%s" % (operation,),
         "image=%s" % (mask_image,),
-        "stokes=%s" % (stokes,)
+        "stokes=%s" % (stokes,),
+        initscript=initscript
     )
     run_process(
         "makesourcedb",
         "in=%s" % (skymodel,),
         "out=%s" % (mask_sourcedb,),
-        "format=<"
+        "format=<",
+        initscript=initscript
     )
     run_process(
         "python",
         "/home/jswinban/pipeline/msss_mask.py",
         mask_image,
-        mask_sourcedb
+        mask_sourcedb,
+        initscript=initscript
     )
     return mask_image
 
@@ -185,32 +166,33 @@ if __name__ == "__main__":
     msin = input_parset.getStringVector("msin")
 
     # We'll run as many simultaneous jobs as we have CPUs
-    # (Except for imaging?)
     pool = ThreadPool(cpu_count())
 
     # Initial NDPPP run to flag & compress the visibilities
-    ndppp_parset = get_parset_subset(input_parset, "ndppp")
+    ndppp_parset = get_parset_subset(input_parset, "ndppp.parset")
     def first_ndppp(ms):
         return run_ndppp(ndppp_parset,
             {
                 "msin": ms,
                 "msout": os.path.join(scratch, os.path.basename(ms)),
-                "aoflagger.strategy": os.path.join(os.getenv("LOFARROOT"), "share/rfistrategies/LBAdefault")
-            }
+#                "aoflagger.strategy": os.path.join(os.getenv("LOFARROOT"), "share/rfistrategies/LBAdefault")
+            },
+            initscript=input_parset.getString("ndppp.initscript")
+
         )
     datafiles = pool.map(first_ndppp, msin)
 
     # Calibrate each subband separately
-    bbs_parset = get_parset_subset(input_parset, "bbs")
+    bbs_parset = get_parset_subset(input_parset, "bbs.parset")
     skymodel = input_parset.getString("skymodel")
     def calibrate_standalone(ms):
-        run_calibrate_standalone(bbs_parset, ms, skymodel)
+        run_calibrate_standalone(bbs_parset, ms, skymodel, initscript=input_parset.getString("bbs.initscript"))
         return ms
     datafiles = pool.map(calibrate_standalone, datafiles)
 
     # Combine with NDPPP
     combined_ms = os.path.join(scratch, "combined.MS")
-    run_ndppp(get_parset_subset(input_parset, "combine"),
+    run_ndppp(get_parset_subset(input_parset, "combine.parset"),
         {
             "msin": str(datafiles),
             "msout": combined_ms
@@ -218,14 +200,14 @@ if __name__ == "__main__":
     )
 
     # Strip bad stations
-    bad_stations = find_bad_stations(combined_ms)
+    bad_stations = find_bad_stations(combined_ms, initscript=input_parset.getString("badstations.initscript"))
     stripped_ms = os.path.join(scratch, "stripped.MS")
     strip_stations(combined_ms, stripped_ms, bad_stations)
 
     # Image
-    maxbl = input_parset.getFloat("maxbl")
-    aw_parset_name = get_parset_subset(input_parset, "awimager")
-    threshold = input_parset.getFloat("noise_multiplier") * estimate_noise(stripped_ms, aw_parset_name, maxbl)
+    maxbl = input_parset.getFloat("awimager.maxbl")
+    aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
+    threshold = input_parset.getFloat("awimager.noise_multiplier") * estimate_noise(stripped_ms, aw_parset_name, maxbl)
     mask = make_mask(stripped_ms, aw_parset_name, skymodel)
 
     print run_awimager(aw_parset_name,
