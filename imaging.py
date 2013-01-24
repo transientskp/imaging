@@ -193,7 +193,7 @@ if __name__ == "__main__":
     transfer_initscript = input_parset.getString("transfer.initscript")
     def transfer_calibration(ms_pair):
         cal, target = ms_pair
-        fd, parmdb_name = mkstemp(dir=scratch)
+        parmdb_name = mkdtemp(dir=scratch)
         run_process("parmexportcal", "in=%s/instrument/" % (cal,), "out=%s" % (parmdb_name,), initscript=transfer_initscript)
         run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel, initscript=transfer_initscript)
     pool.map(transfer_calibration, zip(ms_cal, ms_target))
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     combined_ms = os.path.join(scratch, "combined.MS")
     run_ndppp(get_parset_subset(input_parset, "combine.parset"),
         {
-            "msin": str(datafiles),
+            "msin": str(ms_target),
             "msout": combined_ms
         },
         initscript=input_parset.getString("combine.initscript")
@@ -210,7 +210,7 @@ if __name__ == "__main__":
 
     # Phase only calibration of combined target subbands
     run_calibrate_standalone(
-        get_parset_subsect(input_parset, "phaseonly.parset"),
+        get_parset_subset(input_parset, "phaseonly.parset"),
         combined_ms,
         input_parset.getString("phaseonly.skymodel"),
         initscript=input_parset.getString("phaseonly.initscript")
