@@ -2,6 +2,8 @@ import os
 import warnings
 import subprocess
 import lofar.parameterset
+from contextlib import contextmanager
+from tempfile import mkstemp
 
 def patch_parset(parset_filename, data, output_dir=None):
     temp_parset = lofar.parameterset.parameterset(parset_filename)

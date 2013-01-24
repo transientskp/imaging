@@ -7,7 +7,7 @@ output_ms = /home/jswinban/pipeline/L81157_SAP0.MS
 output_im = /home/jswinban/pipeline/L81157_SAP0.img
 
 # Calibration of calibrator subbands
-calcal.initscript = /home/jswinban/sw/lofarinit.sh
+calcal.initscript = /home/jswinban/sw/lofim/lofarinit.sh
 calcal.skymodel = /home/jswinban/pipeline/calibrators.skymodel
 calcal.parset.Strategy.InputColumn = DATA
 calcal.parset.Strategy.ChunkSize = 120
@@ -42,7 +42,7 @@ calcal.parset.Step.correct.Model.Beam.Enable = T
 calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # Transfer solution from calibrator to target
-transfer.initscript = /home/jswinban/sw/lofarinit.sh
+transfer.initscript = /home/jswinban/sw/lofim/lofarinit.sh
 transfer.skymodel = /home/jswinban/pipeline/dummy.skymodel
 transfer.parset.Strategy.InputColumn = DATA
 transfer.parset.Strategy.ChunkSize = 120
@@ -56,7 +56,7 @@ transfer.parset.Step.correct.Model.Beam.Enable = T
 transfer.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # Combining subbands
-combine.initscript = /home/jswinban/sw/lofarinit.sh
+combine.initscript = /home/jswinban/sw/lofim/lofarinit.sh
 combine.parset.msin.missingdata=true
 combine.parset.msin.orderms=false
 combine.parset.msin.datacolumn=CORRECTED_DATA
@@ -67,7 +67,7 @@ combine.parset.steps=[]
 badstations.initscript = /home/jswinban/sw/lofarinit.sh
 
 # Phase-only calibration of combined target subbands
-phaseonly.initscript = /home/jswinban/sw/lofarinit.sh
+phaseonly.initscript = /home/jswinban/sw/lofim/lofarinit.sh
 phaseonly.skymodel = /home/jswinban/pipeline/81157_sap0.skymodel
 phaseonly.parset.Strategy.InputColumn = DATA
 phaseonly.parset.Strategy.TimeRange = []
@@ -109,7 +109,7 @@ phaseonly.parset.Step.correct.Output.Column = CORRECTED_DATA
 # (lifted from Antonia's tkp_imager.parset on lce051)
 # awimager.XXX parameters are transplanted directly into an awimager parset
 # others are used for calculations to generate the awimager parset
-awimager.initscript = /home/jswinban/awimager/lofarinit.sh
+awimager.initscript = /home/jswinban/sw/awimager/lofarinit.sh
 awimager.noise_multiplier = 10        # float
 awimager.maxbl = 3000                 # float
 awimager.parset.robust = 0            # float

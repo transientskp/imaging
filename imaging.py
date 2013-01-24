@@ -11,7 +11,6 @@ from multiprocessing.pool import ThreadPool
 from shutil import copytree
 from itertools import chain
 from tempfile import mkstemp, mkdtemp
-from contextlib import contextmanager
 
 from pyrap.tables import table
 
@@ -186,7 +185,7 @@ if __name__ == "__main__":
     def calibrate_calibrator(cal):
         run_calibrate_standalone(calcal_parset, cal, calcal_skymodel, initscript=calcal_initscript)
         # TODO: Do we need edit_parmdb.py?
-    pool.map(calibrate_standalone, ms_cal)
+    pool.map(calibrate_calibrator, ms_cal)
 
     # Transfer calibration solutions to targets
     transfer_parset = get_parset_subset(input_parset, "transfer.parset")
