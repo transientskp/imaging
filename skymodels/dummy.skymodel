@@ -1,0 +1,3 @@
+# (Name, Type, Ra, Dec, I, ReferenceFrequency='150.e6', SpectralIndex) = format
+
+DUMMY, POINT, 00:00:00.0, +00.00.00.0, 0.0, , [-0.5]
