@@ -54,15 +54,18 @@ def find_bad_stations(msname, initscript=None):
 
 def strip_stations(msin, msout, stationlist):
     t = table(msin)
-    output = t.query("""
-        all(
-            [ANTENNA1, ANTENNA2] not in
-            [
-                select rowid() from ::ANTENNA where NAME in %s
-            ]
+    if stationlist:
+        output = t.query("""
+            all(
+                [ANTENNA1, ANTENNA2] not in
+                [
+                    select rowid() from ::ANTENNA where NAME in %s
+                ]
+            )
+            """ % str(stationlist)
         )
-        """ % str(stationlist)
-    )
+    else:
+        output = t
     # Is a deep copy really necessary here?
     output.copy(msout, deep=True)
 
