@@ -2,13 +2,13 @@
 
 ms_target = [/home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB000_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB001_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB002_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB003_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB004_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB005_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB006_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB007_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB008_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB009_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB010_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB011_uv.MS.dppp]
 ms_cal = [/home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB000_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB001_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB002_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB003_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB004_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB005_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB006_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB007_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB008_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB009_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB010_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB011_uv.MS.dppp]
-working_dir = /home/jswinban/pipeline
-output_ms = /home/jswinban/pipeline/L81157_SAP0.MS
-output_im = /home/jswinban/pipeline/L81157_SAP0.img
+working_dir = /home/jswinban/imaging
+output_ms = /home/jswinban/imaging/L81157_SAP0.MS
+output_im = /home/jswinban/imaging/L81157_SAP0.img
 
 # Calibration of calibrator subbands
 calcal.initscript = /home/jswinban/sw/lofim/lofarinit.sh
-calcal.skymodel = /home/jswinban/pipeline/calibrators.skymodel
+calcal.skymodel = /home/jswinban/imaging/skymodels/calibrators.skymodel
 calcal.parset.Strategy.InputColumn = DATA
 calcal.parset.Strategy.ChunkSize = 120
 calcal.parset.Strategy.Baselines = CS*&RS*;RS*&;CS*&
@@ -43,7 +43,7 @@ calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # Transfer solution from calibrator to target
 transfer.initscript = /home/jswinban/sw/lofim/lofarinit.sh
-transfer.skymodel = /home/jswinban/pipeline/dummy.skymodel
+transfer.skymodel = /home/jswinban/imaging/skymodels/dummy.skymodel
 transfer.parset.Strategy.InputColumn = DATA
 transfer.parset.Strategy.ChunkSize = 120
 transfer.parset.Strategy.UseSolver = F
@@ -68,7 +68,7 @@ badstations.initscript = /home/jswinban/sw/lofim/lofarinit.sh
 
 # Phase-only calibration of combined target subbands
 phaseonly.initscript = /home/jswinban/sw/lofim/lofarinit.sh
-phaseonly.skymodel = /home/jswinban/pipeline/81157_sap0.skymodel
+phaseonly.skymodel = /home/jswinban/imaging/skymodels/53_54.skymodel
 phaseonly.parset.Strategy.InputColumn = DATA
 phaseonly.parset.Strategy.TimeRange = []
 phaseonly.parset.Strategy.Baselines = *&

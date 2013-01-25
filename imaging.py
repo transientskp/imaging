@@ -142,7 +142,7 @@ def make_mask(msin, parset, skymodel, initscript=None):
     )
     run_process(
         "python",
-        "/home/jswinban/pipeline/msss_mask.py",
+        "/home/jswinban/imaging/msss_mask.py",
         mask_image,
         mask_sourcedb,
         initscript=initscript
