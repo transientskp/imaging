@@ -28,8 +28,10 @@ def run_process(executable, *args, **kwargs):
     args = list(args)
     args.insert(0, executable)
     env = None
-    if "initscript" in kwargs:
+    if "initscript" in kwargs and kwargs["initscript"]:
         env = read_initscript(kwargs['initscript'])
+        if "module" in env:
+            del env['module']
     subprocess.check_call(args, env=env)
 
 

@@ -16,13 +16,12 @@ from pyrap.tables import table
 
 from utility import patched_parset
 from utility import run_process
-from utility import read_initscript
 
 # All temporary writes go to scratch space on the node.
 scratch = os.getenv("TMPDIR")
 
 def run_awimager(parset_filename, parset_keys, initscript=None):
-    with patched_parset(parset_filename, parset_keys, unlink=False) as parset:
+    with patched_parset(parset_filename, parset_keys) as parset:
         run_process("awimager", parset, initscript=initscript)
     return parset_keys["image"]
 
@@ -221,7 +220,6 @@ if __name__ == "__main__":
     # data products, so we save that with the name specified in the parset.
     bad_stations = find_bad_stations(combined_ms, initscript=input_parset.getString("badstations.initscript"))
     stripped_ms = input_parset.getString("output_ms")
-    # TODO: Test what happens if there are no bad stations.
     strip_stations(combined_ms, stripped_ms, bad_stations)
 
     # Image

@@ -64,7 +64,7 @@ combine.parset.msin.baseline=[CR]S*&
 combine.parset.steps=[]
 
 # Bad sations
-badstations.initscript = /home/jswinban/sw/lofarinit.sh
+badstations.initscript = /home/jswinban/sw/lofim/lofarinit.sh
 
 # Phase-only calibration of combined target subbands
 phaseonly.initscript = /home/jswinban/sw/lofim/lofarinit.sh
