@@ -5,4 +5,5 @@
                          # 1 node for this job
 #PBS -S /bin/bash
 source /home/jswinban/sw/init.sh
-time python /home/jswinban/pipeline/imaging.py /home/jswinban/pipeline/imaging.parset
+source /home/jswinban/sw/lofim/lofarinit.sh
+time python /home/jswinban/imaging/imaging.py /home/jswinban/imaging/imaging.parset
