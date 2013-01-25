@@ -181,11 +181,14 @@ if __name__ == "__main__":
 
     # Calibration of each calibrator subband
     calcal_parset = get_parset_subset(input_parset, "calcal.parset")
-    # TODO: Select correct source
-    calcal_skymodel = input_parset.getString("calcal.skymodel")
     calcal_initscript = input_parset.getString("calcal.initscript")
     def calibrate_calibrator(cal):
-        run_calibrate_standalone(calcal_parset, cal, calcal_skymodel, initscript=calcal_initscript)
+        source = table(cal).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
+        skymodel = os.path.join(
+            input_parset.getString("skymodel_dir"),
+            "%s.skymodel" % (source,)
+        )
+        run_calibrate_standalone(calcal_parset, cal, skymodel, initscript=calcal_initscript)
         # TODO: Do we need edit_parmdb.py?
     pool.map(calibrate_calibrator, ms_cal)
 
@@ -225,18 +228,18 @@ if __name__ == "__main__":
     stripped_ms = input_parset.getString("output_ms")
     strip_stations(combined_ms, stripped_ms, bad_stations)
 
-    # Image
-    maxbl = input_parset.getFloat("awimager.maxbl")
-    aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
-    threshold = input_parset.getFloat("awimager.noise_multiplier") * estimate_noise(stripped_ms, aw_parset_name, maxbl)
-    mask = make_mask(stripped_ms, aw_parset_name, skymodel)
-
-    print run_awimager(aw_parset_name,
-        {
-            "ms": stripped_ms,
-            "mask": mask,
-            "threshold": "%fJy" % (threshold,),
-            "select": "\"sumsqr(UVW[:2])<%.1e\"" % (maxbl**2,),
-            "image": input_parset.getString("output_im")
-        }
-    )
+#    # Image
+#    maxbl = input_parset.getFloat("awimager.maxbl")
+#    aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
+#    threshold = input_parset.getFloat("awimager.noise_multiplier") * estimate_noise(stripped_ms, aw_parset_name, maxbl)
+#    mask = make_mask(stripped_ms, aw_parset_name, skymodel)
+#
+#    print run_awimager(aw_parset_name,
+#        {
+#            "ms": stripped_ms,
+#            "mask": mask,
+#            "threshold": "%fJy" % (threshold,),
+#            "select": "\"sumsqr(UVW[:2])<%.1e\"" % (maxbl**2,),
+#            "image": input_parset.getString("output_im")
+#        }
+#    )
