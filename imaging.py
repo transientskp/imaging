@@ -183,7 +183,7 @@ if __name__ == "__main__":
     calcal_parset = get_parset_subset(input_parset, "calcal.parset")
     calcal_initscript = input_parset.getString("calcal.initscript")
     def calibrate_calibrator(cal):
-        source = table(cal).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
+        source = table("%s::OBSERVATION" % (cal,)).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
         skymodel = os.path.join(
             input_parset.getString("skymodel_dir"),
             "%s.skymodel" % (source,)
