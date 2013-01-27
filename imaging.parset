@@ -105,20 +105,35 @@ phaseonly.parset.Step.correct.Model.Gain.Enable  = T
 phaseonly.parset.Step.correct.Model.Beam.Enable  = F
 phaseonly.parset.Step.correct.Output.Column = CORRECTED_DATA
 
-# AWimager parameters
-# (lifted from Antonia's tkp_imager.parset on lce051)
-# awimager.XXX parameters are transplanted directly into an awimager parset
-# others are used for calculations to generate the awimager parset
+# AWimager parameters for noise calculation
+# We use operation=csclean with niter=1 to make a dirty image
+noise.initscript = /home/jswinban/sw/awimager/lofarinit.sh
+noise.box_size = 25                # int
+noise.multiplier = 10              # float
+noise.parset.niter = 1             # int
+noise.parset.operation = csclean   # str
+noise.parset.npix = 256            # int
+noise.parset.stokes = IQUV         # str
+noise.parset.robust = 0            # float
+noise.parset.wmax = 3000           # float
+noise.parset.cellsize = 90arcsec   # str
+noise.parset.wprojplanes = 129     # int
+noise.parset.timewindow = 300      # int
+noise.parset.padding = 1.3         # float
+noise.parset.cyclefactor = 1.0     # float
+noise.parset.data = CORRECTED_DATA # str
+
+# Limit uv coverage of data used for imaging
+limit.max_baseline = 3000 # float
+
+# AWimager parameters for imaging
 awimager.initscript = /home/jswinban/sw/awimager/lofarinit.sh
-awimager.noise_multiplier = 10        # float
-awimager.maxbl = 3000                 # float
 awimager.parset.robust = 0            # float
 awimager.parset.wmax = 3000           # float
 awimager.parset.cellsize = 90arcsec   # str
 awimager.parset.npix = 512            # int
 awimager.parset.wprojplanes = 129     # int
 awimager.parset.niter = 100000        # int
-awimager.parset.StepApplyElement = 1  # int
 awimager.parset.timewindow = 300      # int
 awimager.parset.padding = 1.3         # float
 awimager.parset.cyclefactor = 1.0     # float

@@ -70,38 +70,20 @@ def strip_stations(msin, msout, stationlist):
     output.copy(msout, deep=True)
 
 
-def estimate_noise(msin, parset, maxbl, initscript=None):
+def limit_baselines(msin, msout, maxbl):
+    t = table(msin)
+    out = t.query("sumsqr(UVW[:2])<%.1e" % (maxbl**2,))
+    out.copy(msout, deep=False)
+
+
+def estimate_noise(msin, parset, box_size, initscript=None):
     noise_image = mkdtemp(dir=scratch)
 
-    # Default parameters -- hardcoded in Antonia's script
-    nchan = 10
-    niter = 0
-    npix = 256
-    operation = "image"
-    stokes = "IQUV"
-    box_size = 25
-
-    awimager_parset = lofar.parameterset.parameterset(parset)
-    cellsize = awimager_parset.getString("cellsize")
-    robust = awimager_parset.getFloat("robust")
-    wmax = awimager_parset.getFloat("wmax")
-    wplanes = awimager_parset.getInt("wprojplanes")
-
-    run_process(
-        "awimager",
-        "cellsize=%s" % (cellsize,),
-        "data=CORRECTED_DATA",
-        "ms=%s" % (msin,),
-        "nchan=%d" % (nchan,),
-        "niter=%d" % (niter,),
-        "npix=%d" % (npix,),
-        "operation=%s" % (operation,),
-        "robust=%d" % (robust,),
-        "select=\"sumsqr(UVW[:2])<%.1e\"" % (maxbl**2,),
-        "stokes=%s" % (stokes,),
-        "wmax=%f" % (wmax,),
-        "wprojplanes=%d" % (wplanes,),
-        "image=%s" % (noise_image,),
+    run_awimager(parset,
+        {
+            "ms": msin,
+            "image": noise_image
+        },
         initscript=initscript
     )
 
@@ -170,6 +152,10 @@ if __name__ == "__main__":
     ms_cal = input_parset.getStringVector("ms_cal")
     assert(len(ms_target) == len(ms_cal))
 
+    # Check that output files don't exist before starting
+    assert(not os.path.exists(input_parset.getString("output_ms")))
+    assert(not os.path.exists(input_parset.getString("output_im")))
+
     # Copy to scratch directory
     for ms_name in chain(ms_target, ms_cal):
         copytree(ms_name, os.path.join(scratch, os.path.basename(ms_name)))
@@ -228,18 +214,32 @@ if __name__ == "__main__":
     stripped_ms = input_parset.getString("output_ms")
     strip_stations(combined_ms, stripped_ms, bad_stations)
 
-#    # Image
-#    maxbl = input_parset.getFloat("awimager.maxbl")
-#    aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
-#    threshold = input_parset.getFloat("awimager.noise_multiplier") * estimate_noise(stripped_ms, aw_parset_name, maxbl)
-#    mask = make_mask(stripped_ms, aw_parset_name, skymodel)
-#
-#    print run_awimager(aw_parset_name,
-#        {
-#            "ms": stripped_ms,
-#            "mask": mask,
-#            "threshold": "%fJy" % (threshold,),
-#            "select": "\"sumsqr(UVW[:2])<%.1e\"" % (maxbl**2,),
-#            "image": input_parset.getString("output_im")
-#        }
-#    )
+
+    # Limit the length of the baselines we're using.
+    # We'll image a reference table using only the short baselines.
+    bl_limit_ms = mkdtemp(dir=scratch)
+    limit_baselines(stripped_ms, bl_limit_ms, input_parset.getFloat("limit.max_baseline"))
+
+    # Calculate the threshold for cleaning based on the noise in a dirty map
+    noise_parset_name = get_parset_subset(input_parset, "noise.parset")
+    threshold = input_parset.getFloat("noise.multiplier") * estimate_noise(
+        bl_limit_ms,
+        noise_parset_name,
+        input_parset.getFloat("noise.box_size"),
+        initscript=input_parset.getString("noise.initscript")
+    )
+
+    # Make a mask for cleaning
+    aw_initscript = input_parset.getString("awimager.initscript")
+    aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
+    mask = make_mask(stripped_ms, aw_parset_name, skymodel, initscript=aw_initscript)
+
+    print run_awimager(aw_parset_name,
+        {
+            "ms": stripped_ms,
+            "mask": mask,
+            "threshold": "%fJy" % (threshold,),
+            "image": input_parset.getString("output_im")
+        },
+        initscript=aw_initscript
+    )
