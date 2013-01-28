@@ -76,7 +76,7 @@ def limit_baselines(msin, msout, maxbl):
     out.copy(msout, deep=False)
 
 
-def estimate_noise(msin, parset, box_size, initscript=None):
+def estimate_noise(msin, parset, box_size, awim_init=None):
     noise_image = mkdtemp(dir=scratch)
 
     run_awimager(parset,
@@ -84,7 +84,7 @@ def estimate_noise(msin, parset, box_size, initscript=None):
             "ms": msin,
             "image": noise_image
         },
-        initscript=initscript
+        initscript=awim_init
     )
 
     t = table(noise_image)
@@ -95,7 +95,7 @@ def estimate_noise(msin, parset, box_size, initscript=None):
     return noise
 
 
-def make_mask(msin, parset, skymodel, initscript=None):
+def make_mask(msin, parset, skymodel, awim_init=None):
     mask_image = mkdtemp(dir=scratch)
     mask_sourcedb = mkdtemp(dir=scratch)
     operation = "empty"
@@ -113,21 +113,19 @@ def make_mask(msin, parset, skymodel, initscript=None):
         "operation=%s" % (operation,),
         "image=%s" % (mask_image,),
         "stokes=%s" % (stokes,),
-        initscript=initscript
+        initscript=awim_init
     )
     run_process(
         "makesourcedb",
         "in=%s" % (skymodel,),
         "out=%s" % (mask_sourcedb,),
-        "format=<",
-        initscript=initscript
+        "format=<"
     )
     run_process(
         "python",
         "/home/jswinban/imaging/msss_mask.py",
         mask_image,
-        mask_sourcedb,
-        initscript=initscript
+        mask_sourcedb
     )
     return mask_image
 
@@ -167,26 +165,25 @@ if __name__ == "__main__":
 
     # Calibration of each calibrator subband
     calcal_parset = get_parset_subset(input_parset, "calcal.parset")
-    calcal_initscript = input_parset.getString("calcal.initscript")
     def calibrate_calibrator(cal):
         source = table("%s::OBSERVATION" % (cal,)).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
         skymodel = os.path.join(
             input_parset.getString("skymodel_dir"),
             "%s.skymodel" % (source,)
         )
-        run_calibrate_standalone(calcal_parset, cal, skymodel, initscript=calcal_initscript)
+        print "Calibrating %s with skymodel %s" % (cal, skymodel)
+        run_calibrate_standalone(calcal_parset, cal, skymodel)
         # TODO: Do we need edit_parmdb.py?
     pool.map(calibrate_calibrator, ms_cal)
 
     # Transfer calibration solutions to targets
     transfer_parset = get_parset_subset(input_parset, "transfer.parset")
     transfer_skymodel = input_parset.getString("transfer.skymodel")
-    transfer_initscript = input_parset.getString("transfer.initscript")
     def transfer_calibration(ms_pair):
         cal, target = ms_pair
         parmdb_name = mkdtemp(dir=scratch)
-        run_process("parmexportcal", "in=%s/instrument/" % (cal,), "out=%s" % (parmdb_name,), initscript=transfer_initscript)
-        run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel, initscript=transfer_initscript)
+        run_process("parmexportcal", "in=%s/instrument/" % (cal,), "out=%s" % (parmdb_name,))
+        run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel)
     pool.map(transfer_calibration, zip(ms_cal, ms_target))
 
     # Combine with NDPPP
@@ -195,30 +192,30 @@ if __name__ == "__main__":
         {
             "msin": str(ms_target),
             "msout": combined_ms
-        },
-        initscript=input_parset.getString("combine.initscript")
+        }
     )
 
     # Phase only calibration of combined target subbands
     run_calibrate_standalone(
         get_parset_subset(input_parset, "phaseonly.parset"),
         combined_ms,
-        input_parset.getString("phaseonly.skymodel"),
-        initscript=input_parset.getString("phaseonly.initscript")
+        input_parset.getString("phaseonly.skymodel")
     )
 
     # Strip bad stations.
     # Note that the combined, calibrated, stripped MS is one of our output
     # data products, so we save that with the name specified in the parset.
-    bad_stations = find_bad_stations(combined_ms, initscript=input_parset.getString("badstations.initscript"))
+    bad_stations = find_bad_stations(combined_ms)
     stripped_ms = input_parset.getString("output_ms")
     strip_stations(combined_ms, stripped_ms, bad_stations)
-
 
     # Limit the length of the baselines we're using.
     # We'll image a reference table using only the short baselines.
     bl_limit_ms = mkdtemp(dir=scratch)
     limit_baselines(stripped_ms, bl_limit_ms, input_parset.getFloat("limit.max_baseline"))
+
+    # We source a special build for using the "new" awimager
+    awim_init = input_parset.getString("awimager.initscript")
 
     # Calculate the threshold for cleaning based on the noise in a dirty map
     noise_parset_name = get_parset_subset(input_parset, "noise.parset")
@@ -226,13 +223,12 @@ if __name__ == "__main__":
         bl_limit_ms,
         noise_parset_name,
         input_parset.getFloat("noise.box_size"),
-        initscript=input_parset.getString("noise.initscript")
+        awim_init=awim_init
     )
 
     # Make a mask for cleaning
-    aw_initscript = input_parset.getString("awimager.initscript")
     aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
-    mask = make_mask(stripped_ms, aw_parset_name, skymodel, initscript=aw_initscript)
+    mask = make_mask(stripped_ms, aw_parset_name, skymodel, awim_init=awim_init)
 
     print run_awimager(aw_parset_name,
         {
@@ -241,5 +237,5 @@ if __name__ == "__main__":
             "threshold": "%fJy" % (threshold,),
             "image": input_parset.getString("output_im")
         },
-        initscript=aw_initscript
+        initscript=aw_im
     )
