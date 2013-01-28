@@ -87,7 +87,9 @@ def estimate_noise(msin, parset, box_size, awim_init=None):
         initscript=awim_init
     )
 
-    t = table(noise_image)
+    t = table(noise_image + ".restored")
+    parset = lofar.parameterset.parameterset(parset)
+    npix = parset.getFloat("npix")
     # Why is there a 3 in here? Are we calculating the noise in Stokes V?
     # (this is lifted from Antonia, which is lifted from George, ...!)
     noise = t.getcol('map')[0, 0, 3, npix/2-box_size:npix/2+box_size, npix/2-box_size:npix/2+box_size].std()
@@ -150,6 +152,10 @@ if __name__ == "__main__":
     ms_cal = input_parset.getStringVector("ms_cal")
     assert(len(ms_target) == len(ms_cal))
 
+    # Check that all our inputs exist
+    for msname in chain(ms_target, ms_cal):
+        assert(os.path.exists(msname))
+
     # Check that output files don't exist before starting
     assert(not os.path.exists(input_parset.getString("output_ms")))
     assert(not os.path.exists(input_parset.getString("output_im")))
@@ -196,10 +202,11 @@ if __name__ == "__main__":
     )
 
     # Phase only calibration of combined target subbands
+    target_skymodel = input_parset.getString("phaseonly.skymodel")
     run_calibrate_standalone(
         get_parset_subset(input_parset, "phaseonly.parset"),
         combined_ms,
-        input_parset.getString("phaseonly.skymodel")
+        target_skymodel
     )
 
     # Strip bad stations.
@@ -227,8 +234,8 @@ if __name__ == "__main__":
     )
 
     # Make a mask for cleaning
-    aw_parset_name = get_parset_subset(input_parset, "awimager.parset")
-    mask = make_mask(stripped_ms, aw_parset_name, skymodel, awim_init=awim_init)
+    aw_parset_name = get_parset_subset(input_parset, "image.parset")
+    mask = make_mask(stripped_ms, aw_parset_name, target_skymodel, awim_init=awim_init)
 
     print run_awimager(aw_parset_name,
         {
@@ -237,5 +244,5 @@ if __name__ == "__main__":
             "threshold": "%fJy" % (threshold,),
             "image": input_parset.getString("output_im")
         },
-        initscript=aw_im
+        initscript=awim_init
     )
