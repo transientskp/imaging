@@ -158,14 +158,19 @@ if __name__ == "__main__":
         assert(os.path.exists(msname))
 
     # Check that output files don't exist before starting
-    assert(not os.path.exists(input_parset.getString("output_ms")))
-    assert(not os.path.exists(input_parset.getString("output_im")))
+    output_dir = input_parset.getString("output_directory")
+    output_ms = os.path.join(output_dir, input_parset.getString("output_ms"))
+    output_im = os.path.join(output_dir, input_parset.getString("output_im"))
+    assert(not os.path.exists(output_ms))
+    assert(not os.path.exists(output_im))
 
-    # Copy to scratch directory
-    for ms_name in chain(ms_target, ms_cal):
+    # Copy to working directories
+    for ms_name in ms_target:
         copytree(ms_name, os.path.join(scratch, os.path.basename(ms_name)))
     ms_target = [os.path.join(scratch, os.path.basename(ms)) for ms in ms_target]
-    ms_cal = [os.path.join(scratch, os.path.basename(ms)) for ms in ms_cal]
+    for ms_name in ms_cal:
+        copytree(ms_name, os.path.join(output_dir, os.path.basename(ms_name)))
+    ms_cal = [os.path.join(output_dir, os.path.basename(ms)) for ms in ms_target]
 
     # We'll run as many simultaneous jobs as we have CPUs
     pool = ThreadPool(cpu_count())
@@ -219,7 +224,7 @@ if __name__ == "__main__":
     # data products, so we save that with the name specified in the parset.
     with time_code("Strip bad stations"):
         bad_stations = find_bad_stations(combined_ms)
-        stripped_ms = input_parset.getString("output_ms")
+        stripped_ms = output_ms
         strip_stations(combined_ms, stripped_ms, bad_stations)
 
     # Limit the length of the baselines we're using.
@@ -252,7 +257,7 @@ if __name__ == "__main__":
                 "ms": stripped_ms,
                 "mask": mask,
                 "threshold": "%fJy" % (threshold,),
-                "image": input_parset.getString("output_im")
+                "image": output_im
             },
             initscript=awim_init
         )

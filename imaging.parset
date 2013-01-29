@@ -4,8 +4,9 @@ ms_target = [/home/jswinban/RSM_TEST_DEC2012/L81157/L81157_SAP000_SB000_uv.MS.dp
 ms_cal = [/home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB000_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB001_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB002_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB003_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB004_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB005_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB006_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB007_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB008_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB009_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB010_uv.MS.dppp, /home/jswinban/RSM_TEST_DEC2012/L81158/L81158_SAP000_SB011_uv.MS.dppp]
 working_dir = /home/jswinban/imaging
 skymodel_dir = /home/jswinban/imaging/skymodels
-output_ms = /home/jswinban/imaging/L81157_SAP0.MS
-output_im = /home/jswinban/imaging/L81157_SAP0.img
+output_directory = /home/jswinban/imaging
+output_ms = L81157_SAP0.MS
+output_im = L81157_SAP0.img
 
 # Calibration of calibrator subbands
 calcal.parset.Strategy.InputColumn = DATA
