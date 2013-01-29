@@ -41,6 +41,10 @@ calcal.parset.Step.correct.Model.Gain.Enable = T
 calcal.parset.Step.correct.Model.Beam.Enable = T
 calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
 
+# Clipping of calibrator parmdbs
+pdbclip.executable = /home/jswinban/edit-parmdb/edit_parmdb.py
+pdbclip.sigma = 1.0
+
 # Transfer solution from calibrator to target
 transfer.skymodel = /home/jswinban/imaging/skymodels/dummy.skymodel
 transfer.parset.Strategy.InputColumn = DATA

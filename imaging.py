@@ -186,9 +186,19 @@ if __name__ == "__main__":
         )
         print "Calibrating %s with skymodel %s" % (cal, skymodel)
         run_calibrate_standalone(calcal_parset, cal, skymodel)
-        # TODO: Do we need edit_parmdb.py?
     with time_code("Calibration of calibrator"):
         pool.map(calibrate_calibrator, ms_cal)
+
+    # Clip calibrator parmdbs
+    def clip_parmdb(sb):
+        run_process(
+            input_parset.getString("pdbclip.executable"),
+            "--auto",
+            "--sigma=%f" % (input_parset.getFloat("pdbclip.sigma"),),
+            os.path.join(sb, "instrument")
+        )
+    with time_code("Clip calibrator instrument databases"):
+        pool.map(lambda sb: clip_parmdb(sb), ms_cal)
 
     # Transfer calibration solutions to targets
     transfer_parset = get_parset_subset(input_parset, "transfer.parset")
