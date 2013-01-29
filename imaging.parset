@@ -106,17 +106,15 @@ awimager.initscript = /home/jswinban/sw/awimager/lofarinit.sh
 # We use operation=csclean with niter=1 to make a dirty image
 noise.box_size = 25                # int
 noise.multiplier = 10              # float
-noise.parset.niter = 1             # int
-noise.parset.operation = csclean   # str
+noise.parset.niter = 0             # int
+noise.parset.operation = image     # str
 noise.parset.npix = 256            # int
 noise.parset.stokes = IQUV         # str
 noise.parset.robust = 0            # float
-noise.parset.wmax = 3000           # float
-noise.parset.cellsize = 90arcsec   # str
-noise.parset.wprojplanes = 129     # int
+noise.parset.cellsize = 30arcsec   # str
+noise.parset.wprojplanes = 128     # int
 noise.parset.timewindow = 300      # int
-noise.parset.padding = 1.3         # float
-noise.parset.cyclefactor = 1.0     # float
+noise.parset.padding = 1.0         # float
 noise.parset.data = CORRECTED_DATA # str
 
 # Limit uv coverage of data used for imaging
@@ -124,15 +122,13 @@ limit.max_baseline = 3000 # float
 
 # AWimager parameters for imaging
 image.parset.robust = 0            # float
-image.parset.wmax = 3000           # float
-image.parset.cellsize = 90arcsec   # str
+image.parset.cellsize = 30arcsec   # str
 image.parset.npix = 512            # int
-image.parset.wprojplanes = 129     # int
-image.parset.niter = 100000        # int
+image.parset.wprojplanes = 128     # int
+image.parset.niter = 20000         # int
 image.parset.timewindow = 300      # int
-image.parset.padding = 1.3         # float
-image.parset.cyclefactor = 1.0     # float
+image.parset.padding = 1.0         # float
+image.parset.cyclefactor = 1.5     # float
 image.parset.data = CORRECTED_DATA # str
-image.parset.nchan = 10            # int
 image.parset.operation = csclean   # str
 image.parset.stokes = I            # str

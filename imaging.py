@@ -77,18 +77,19 @@ def limit_baselines(msin, msout, maxbl):
     out.copy(msout, deep=False)
 
 
-def estimate_noise(msin, parset, box_size, awim_init=None):
+def estimate_noise(msin, parset, wmax, box_size, awim_init=None):
     noise_image = mkdtemp(dir=scratch)
 
     run_awimager(parset,
         {
             "ms": msin,
-            "image": noise_image
+            "image": noise_image,
+            "wmax": wmax
         },
         initscript=awim_init
     )
 
-    t = table(noise_image + ".restored")
+    t = table(noise_image)
     parset = lofar.parameterset.parameterset(parset)
     npix = parset.getFloat("npix")
     # Why is there a 3 in here? Are we calculating the noise in Stokes V?
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     ms_target = [os.path.join(scratch, os.path.basename(ms)) for ms in ms_target]
     for ms_name in ms_cal:
         copytree(ms_name, os.path.join(output_dir, os.path.basename(ms_name)))
-    ms_cal = [os.path.join(output_dir, os.path.basename(ms)) for ms in ms_target]
+    ms_cal = [os.path.join(output_dir, os.path.basename(ms)) for ms in ms_cal]
 
     # We'll run as many simultaneous jobs as we have CPUs
     pool = ThreadPool(cpu_count())
@@ -229,9 +230,10 @@ if __name__ == "__main__":
 
     # Limit the length of the baselines we're using.
     # We'll image a reference table using only the short baselines.
+    maxbl = input_parset.getFloat("limit.max_baseline")
     with time_code("Limiting maximum baseline length"):
         bl_limit_ms = mkdtemp(dir=scratch)
-        limit_baselines(stripped_ms, bl_limit_ms, input_parset.getFloat("limit.max_baseline"))
+        limit_baselines(stripped_ms, bl_limit_ms, maxbl)
 
     # We source a special build for using the "new" awimager
     awim_init = input_parset.getString("awimager.initscript")
@@ -242,8 +244,8 @@ if __name__ == "__main__":
         threshold = input_parset.getFloat("noise.multiplier") * estimate_noise(
             bl_limit_ms,
             noise_parset_name,
-            input_parset.getFloat("noise.box_size"),
-            awim_init=awim_init
+            maxbl,
+            input_parset.getFloat("noise.box_size")
         )
 
     # Make a mask for cleaning
@@ -254,10 +256,11 @@ if __name__ == "__main__":
     with time_code("Making image"):
         print run_awimager(aw_parset_name,
             {
-                "ms": stripped_ms,
+                "ms": bl_limit_ms,
                 "mask": mask,
                 "threshold": "%fJy" % (threshold,),
-                "image": output_im
+                "image": output_im,
+                "wmax": maxbl
             },
             initscript=awim_init
         )
