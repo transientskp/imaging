@@ -1,9 +1,19 @@
 import os
+import time
 import warnings
 import subprocess
 import lofar.parameterset
 from contextlib import contextmanager
 from tempfile import mkstemp
+
+@contextmanager
+def time_code(name):
+    start_time = time.time()
+    try:
+        yield
+    finally:
+        print "%s took %f seconds" % (name, time.time() - start_time)
+
 
 def patch_parset(parset_filename, data, output_dir=None):
     temp_parset = lofar.parameterset.parameterset(parset_filename)
