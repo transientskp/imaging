@@ -99,7 +99,7 @@ def estimate_noise(msin, parset, wmax, box_size, awim_init=None):
     return noise
 
 
-def make_mask(msin, parset, skymodel, awim_init=None):
+def make_mask(msin, parset, skymodel, executable, awim_init=None):
     mask_image = mkdtemp(dir=scratch)
     mask_sourcedb = mkdtemp(dir=scratch)
     operation = "empty"
@@ -126,8 +126,7 @@ def make_mask(msin, parset, skymodel, awim_init=None):
         "format=<"
     )
     run_process(
-        "python",
-        "/home/jswinban/imaging/msss_mask.py",
+        executable,
         mask_image,
         mask_sourcedb
     )
@@ -261,7 +260,13 @@ if __name__ == "__main__":
     # Make a mask for cleaning
     aw_parset_name = get_parset_subset(input_parset, "image.parset")
     with time_code("Making mask"):
-        mask = make_mask(stripped_ms, aw_parset_name, target_skymodel, awim_init=awim_init)
+        mask = make_mask(
+            stripped_ms,
+            aw_parset_name,
+            target_skymodel,
+            input_parset.getString("make_mask.executable"),
+            awim_init=awim_init
+        )
 
     with time_code("Making image"):
         print run_awimager(aw_parset_name,
