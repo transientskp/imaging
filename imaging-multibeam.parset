@@ -1,0 +1,139 @@
+# Control of the imaging script
+
+input_dir = /home/jswinban/RSM_TEST_DEC2012
+cal_obsid = L81158
+target_obsid = L81157
+n_beams = 1 # For sanity checking
+output_dir = /home/jswinban/RSM_output/TEST_DEC2012/
+skymodel_dir = /home/jswinban/imaging/skymodels
+
+# Calibration of calibrator subbands
+calcal.parset.Strategy.InputColumn = DATA
+calcal.parset.Strategy.ChunkSize = 120
+calcal.parset.Strategy.Baselines = CS*&RS*;RS*&;CS*&
+calcal.parset.Strategy.UseSolver = F
+calcal.parset.Strategy.Correlations = []
+calcal.parset.Strategy.Steps = [solve,correct]
+calcal.parset.Step.solve.Operation = SOLVE
+calcal.parset.Step.solve.Model.Sources = []
+calcal.parset.Step.solve.Model.Cache.Enable = T
+calcal.parset.Step.solve.Model.Gain.Enable = T
+calcal.parset.Step.solve.Model.Beam.Enable = T
+calcal.parset.Step.solve.Solve.Parms = ["Gain:0:0:*","Gain:1:1:*"]
+calcal.parset.Step.solve.Solve.ExclParms = []
+calcal.parset.Step.solve.Solve.CalibrationGroups = []
+calcal.parset.Step.solve.Solve.CellSize.Freq = 0
+calcal.parset.Step.solve.Solve.CellSize.Time = 1
+calcal.parset.Step.solve.Solve.CellChunkSize = 20
+calcal.parset.Step.solve.Solve.PropagateSolutions = F
+calcal.parset.Step.solve.Solve.Options.MaxIter = 100
+calcal.parset.Step.solve.Solve.Options.EpsValue = 1e-4
+calcal.parset.Step.solve.Solve.Options.EpsDerivative = 1e-4
+calcal.parset.Step.solve.Solve.Options.ColFactor = 1e-9
+calcal.parset.Step.solve.Solve.Options.LMFactor = 1.0
+calcal.parset.Step.solve.Solve.Options.BalancedEqs = F
+calcal.parset.Step.solve.Solve.Options.UseSVD = T
+calcal.parset.Step.solve.Output.Column = 
+calcal.parset.Step.correct.Operation = CORRECT
+calcal.parset.Step.correct.Model.Sources = []
+calcal.parset.Step.correct.Model.Gain.Enable = T
+calcal.parset.Step.correct.Model.Beam.Enable = T
+calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
+
+# Clipping of calibrator parmdbs
+pdbclip.executable = /home/jswinban/edit-parmdb/edit_parmdb.py
+pdbclip.sigma = 1.0
+
+# Transfer solution from calibrator to target
+transfer.skymodel = /home/jswinban/imaging/skymodels/dummy.skymodel
+transfer.parset.Strategy.InputColumn = DATA
+transfer.parset.Strategy.ChunkSize = 120
+transfer.parset.Strategy.UseSolver = F
+transfer.parset.Strategy.Correlations = []
+transfer.parset.Strategy.Steps = [correct]
+transfer.parset.Step.correct.Operation = CORRECT
+transfer.parset.Step.correct.Model.Sources = []
+transfer.parset.Step.correct.Model.Gain.Enable = T
+transfer.parset.Step.correct.Model.Beam.Enable = T
+transfer.parset.Step.correct.Output.Column = CORRECTED_DATA
+
+# Combining subbands
+combine.parset.msin.missingdata=true
+combine.parset.msin.orderms=false
+combine.parset.msin.datacolumn=CORRECTED_DATA
+combine.parset.msin.baseline=[CR]S*&
+combine.parset.steps=[]
+
+# Phase-only calibration of combined target subbands
+phaseonly.parset.Strategy.InputColumn = DATA
+phaseonly.parset.Strategy.TimeRange = []
+phaseonly.parset.Strategy.Baselines = *&
+phaseonly.parset.Strategy.ChunkSize = 100
+phaseonly.parset.Strategy.UseSolver = F
+phaseonly.parset.Strategy.Steps = [solve, correct]
+phaseonly.parset.Step.solve.Operation = SOLVE
+phaseonly.parset.Step.solve.Baselines = CS*
+phaseonly.parset.Step.solve.Model.Sources = []
+phaseonly.parset.Step.solve.Model.Cache.Enable = T
+phaseonly.parset.Step.solve.Model.Phasors.Enable = T
+phaseonly.parset.Step.solve.Model.Gain.Enable = T
+phaseonly.parset.Step.solve.Model.Beam.Enable = T
+phaseonly.parset.Step.solve.Model.Beam.Mode = ARRAY_FACTOR
+phaseonly.parset.Step.solve.Solve.Mode = PHASE
+phaseonly.parset.Step.solve.Solve.Parms = ["Gain:0:0:Phase:*", "Gain:1:1:Phase:*"]
+phaseonly.parset.Step.solve.Solve.ExclParms = []
+phaseonly.parset.Step.solve.Solve.CalibrationGroups = []
+phaseonly.parset.Step.solve.Solve.CellSize.Freq = 0
+phaseonly.parset.Step.solve.Solve.CellSize.Time = 1
+phaseonly.parset.Step.solve.Solve.CellChunkSize = 10
+phaseonly.parset.Step.solve.Solve.PropagateSolutions = F
+phaseonly.parset.Step.solve.Solve.Options.MaxIter = 100
+phaseonly.parset.Step.solve.Solve.Options.EpsValue = 1e-4
+phaseonly.parset.Step.solve.Solve.Options.EpsDerivative = 1e-4
+phaseonly.parset.Step.solve.Solve.Options.ColFactor = 1e-9
+phaseonly.parset.Step.solve.Solve.Options.LMFactor = 1.0
+phaseonly.parset.Step.solve.Solve.Options.BalancedEqs = F
+phaseonly.parset.Step.solve.Solve.Options.UseSVD = T
+phaseonly.parset.Step.correct.Operation = CORRECT
+phaseonly.parset.Step.correct.Model.Sources = []
+phaseonly.parset.Step.correct.Model.Phasors.Enable  = T
+phaseonly.parset.Step.correct.Model.Gain.Enable  = T
+phaseonly.parset.Step.correct.Model.Beam.Enable  = F
+phaseonly.parset.Step.correct.Output.Column = CORRECTED_DATA
+
+# Initialization script for special awimager environment
+awimager.initscript = /home/jswinban/sw/awimager/lofarinit.sh
+
+# AWimager parameters for noise calculation
+# We use operation=csclean with niter=1 to make a dirty image
+noise.box_size = 25                # int
+noise.multiplier = 10              # float
+noise.parset.niter = 0             # int
+noise.parset.operation = image     # str
+noise.parset.npix = 256            # int
+noise.parset.stokes = IQUV         # str
+noise.parset.robust = 0            # float
+noise.parset.cellsize = 30arcsec   # str
+noise.parset.wprojplanes = 128     # int
+noise.parset.timewindow = 300      # int
+noise.parset.padding = 1.0         # float
+noise.parset.data = CORRECTED_DATA # str
+
+# Limit uv coverage of data used for imaging
+limit.max_baseline = 3000 # float
+
+# Path to msss_mask.py executable
+make_mask.executable = /home/jswinban/imaging/msss_mask.py
+
+# AWimager parameters for imaging
+image.parset.robust = 0            # float
+image.parset.cellsize = 30arcsec   # str
+image.parset.npix = 512            # int
+image.parset.wprojplanes = 128     # int
+image.parset.niter = 20000         # int
+image.parset.timewindow = 300      # int
+image.parset.padding = 1.0         # float
+image.parset.cyclefactor = 1.5     # float
+image.parset.data = CORRECTED_DATA # str
+image.parset.operation = csclean   # str
+image.parset.stokes = I            # str
