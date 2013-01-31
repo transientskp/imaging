@@ -39,8 +39,6 @@ def get_file_list(root_dir, obsid, beam):
         ))
     )
 
-
-
 if __name__ == "__main__":
     # Our single command line argument is a parset containing all
     # configuration information we'll need.
