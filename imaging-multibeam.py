@@ -5,15 +5,12 @@ import sys
 import numpy
 import math
 import glob
-import errno
 import lofar.parameterset
 
 from multiprocessing import cpu_count
 from multiprocessing.pool import ThreadPool
 
-from shutil import copytree
-from itertools import chain
-from tempfile import mkstemp, mkdtemp
+from tempfile import mkdtemp
 
 from pyrap.tables import table
 
@@ -109,7 +106,7 @@ if __name__ == "__main__":
 
     # Calibration of each calibrator subband
     os.chdir(ms_cal['output_dir']) # Logs will get dumped here
-    calcal_parset = get_parset_subset(input_parset, "calcal.parset")
+    calcal_parset = get_parset_subset(input_parset, "calcal.parset", scratch)
     def calibrate_calibrator(cal):
         source = table("%s::OBSERVATION" % (cal,)).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
         skymodel = os.path.join(
@@ -133,7 +130,7 @@ if __name__ == "__main__":
         pool.map(lambda sb: clip_parmdb(sb), ms_cal["datafiles"])
 
     # Transfer calibration solutions to targets
-    transfer_parset = get_parset_subset(input_parset, "transfer.parset")
+    transfer_parset = get_parset_subset(input_parset, "transfer.parset", scratch)
     transfer_skymodel = input_parset.getString("transfer.skymodel")
     def transfer_calibration(ms_pair):
         cal, target = ms_pair
@@ -149,7 +146,7 @@ if __name__ == "__main__":
     def combine_ms(target_info):
         output = os.path.join(scratch, mkdtemp(dir=scratch), "combined.MS")
         run_ndppp(
-            get_parset_subset(input_parset, "combine.parset"),
+            get_parset_subset(input_parset, "combine.parset", scratch),
             {
                 "msin": str(target_info["datafiles"]),
                 "msout": output
@@ -166,7 +163,7 @@ if __name__ == "__main__":
     def phaseonly(target_info):
         os.chdir(target_info['output_dir']) # Logs will get dumped here
         run_calibrate_standalone(
-            get_parset_subset(input_parset, "phaseonly.parset"),
+            get_parset_subset(input_parset, "phaseonly.parset", scratch),
             target_info["combined"],
             target_info["skymodel"]
         )
@@ -196,7 +193,7 @@ if __name__ == "__main__":
 
     # Calculate the threshold for cleaning based on the noise in a dirty map
     # We don't use our threadpool here, since awimager is parallelized
-    noise_parset_name = get_parset_subset(input_parset, "noise.parset")
+    noise_parset_name = get_parset_subset(input_parset, "noise.parset", scratch)
     with time_code("Calculating threshold for cleaning"):
         for target_info in ms_target.values():
             print "Getting threshold for %s" % target_info["output_ms"]
@@ -204,11 +201,12 @@ if __name__ == "__main__":
                 target_info["bl_limit_ms"],
                 noise_parset_name,
                 maxbl,
+                scratch,
                 input_parset.getFloat("noise.box_size")
             )
 
     # Make a mask for cleaning
-    aw_parset_name = get_parset_subset(input_parset, "image.parset")
+    aw_parset_name = get_parset_subset(input_parset, "image.parset", scratch)
     with time_code("Making mask"):
         for target_info in ms_target.values():
             print "Making mask for %s" % target_info["output_ms"]
@@ -217,6 +215,7 @@ if __name__ == "__main__":
                 aw_parset_name,
                 target_info["skymodel"],
                 input_parset.getString("make_mask.executable"),
+                scratch,
                 awim_init=awim_init
             )
 

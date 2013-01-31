@@ -1,10 +1,12 @@
 import os
 import time
+import errno
 import warnings
 import subprocess
 import lofar.parameterset
 from contextlib import contextmanager
-from tempfile import mkstemp
+from tempfile import mkstemp, mkdtemp
+from shutil import copytree
 from pyrap.tables import table
 
 @contextmanager
@@ -16,9 +18,9 @@ def time_code(name):
         print "%s took %f seconds" % (name, time.time() - start_time)
 
 
-def get_parset_subset(parset, prefix):
+def get_parset_subset(parset, prefix, scratchdir):
     subset = parset.makeSubset(prefix + ".", "")
-    fd, parset_name = mkstemp(dir=scratch)
+    fd, parset_name = mkstemp(dir=scratchdir)
     subset.writeFile(parset_name)
     return parset_name
 
@@ -144,8 +146,8 @@ def limit_baselines(msin, msout, maxbl):
     out.copy(msout, deep=False)
 
 
-def estimate_noise(msin, parset_name, wmax, box_size, awim_init=None):
-    noise_image = mkdtemp(dir=scratch)
+def estimate_noise(msin, parset_name, wmax, box_size, scratchdir, awim_init=None):
+    noise_image = mkdtemp(dir=scratchdir)
 
     run_awimager(parset,
         {
@@ -166,9 +168,9 @@ def estimate_noise(msin, parset_name, wmax, box_size, awim_init=None):
     return noise
 
 
-def make_mask(msin, parset, skymodel, executable, awim_init=None):
-    mask_image = mkdtemp(dir=scratch)
-    mask_sourcedb = mkdtemp(dir=scratch)
+def make_mask(msin, parset, skymodel, executable, scratchdir, awim_init=None):
+    mask_image = mkdtemp(dir=scratchdir)
+    mask_sourcedb = mkdtemp(dir=scratchdir)
     operation = "empty"
 
     awimager_parset = lofar.parameterset.parameterset(parset)

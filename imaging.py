@@ -67,7 +67,7 @@ if __name__ == "__main__":
     pool = ThreadPool(cpu_count())
 
     # Calibration of each calibrator subband
-    calcal_parset = get_parset_subset(input_parset, "calcal.parset")
+    calcal_parset = get_parset_subset(input_parset, "calcal.parset", scratch)
     def calibrate_calibrator(cal):
         source = table("%s::OBSERVATION" % (cal,)).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
         skymodel = os.path.join(
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         pool.map(lambda sb: clip_parmdb(sb), ms_cal)
 
     # Transfer calibration solutions to targets
-    transfer_parset = get_parset_subset(input_parset, "transfer.parset")
+    transfer_parset = get_parset_subset(input_parset, "transfer.parset", scratch)
     transfer_skymodel = input_parset.getString("transfer.skymodel")
     def transfer_calibration(ms_pair):
         cal, target = ms_pair
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # Combine with NDPPP
     combined_ms = os.path.join(scratch, "combined.MS")
     with time_code("Combination of subbands using NDPPP"):
-        run_ndppp(get_parset_subset(input_parset, "combine.parset"),
+        run_ndppp(get_parset_subset(input_parset, "combine.parset", scratch),
             {
                 "msin": str(ms_target),
                 "msout": combined_ms
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     target_skymodel = input_parset.getString("phaseonly.skymodel")
     with time_code("Phase-only calibration"):
         run_calibrate_standalone(
-            get_parset_subset(input_parset, "phaseonly.parset"),
+            get_parset_subset(input_parset, "phaseonly.parset", scratch),
             combined_ms,
             target_skymodel
         )
@@ -139,23 +139,25 @@ if __name__ == "__main__":
     awim_init = input_parset.getString("awimager.initscript")
 
     # Calculate the threshold for cleaning based on the noise in a dirty map
-    noise_parset_name = get_parset_subset(input_parset, "noise.parset")
+    noise_parset_name = get_parset_subset(input_parset, "noise.parset", scratch)
     with time_code("Estimating noise"):
         threshold = input_parset.getFloat("noise.multiplier") * estimate_noise(
             bl_limit_ms,
             noise_parset_name,
             maxbl,
-            input_parset.getFloat("noise.box_size")
+            input_parset.getFloat("noise.box_size"),
+            scratch
         )
 
     # Make a mask for cleaning
-    aw_parset_name = get_parset_subset(input_parset, "image.parset")
+    aw_parset_name = get_parset_subset(input_parset, "image.parset", scratch)
     with time_code("Making mask"):
         mask = make_mask(
             stripped_ms,
             aw_parset_name,
             target_skymodel,
             input_parset.getString("make_mask.executable"),
+            scratch,
             awim_init=awim_init
         )
 
