@@ -112,7 +112,7 @@ if __name__ == "__main__":
             "%s.skymodel" % (source,)
         )
         print "Calibrating %s with skymodel %s" % (cal, skymodel)
-        run_calibrate_standalone(calcal_parset, cal, skymodel)
+        run_calibrate_standalone(calcal_parset, cal, skymodel, replace_parmdb=True, replace_sourcedb=True)
     with time_code("Calibration of calibrator"):
         pool.map(calibrate_calibrator, ms_cal["datafiles"])
 

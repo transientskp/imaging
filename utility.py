@@ -70,6 +70,7 @@ def run_process(executable, *args, **kwargs):
         env = read_initscript(kwargs['initscript'])
         if "module" in env:
             del env['module']
+    print "Executing: " + " ".join(args)
     subprocess.check_call(args, env=env)
 
 
@@ -103,8 +104,16 @@ def run_ndppp(parset_filename, parset_keys, initscript=None):
     return parset_keys["msout"]
 
 
-def run_calibrate_standalone(parset_filename, input_ms, skymodel, initscript=None):
-    run_process("calibrate-stand-alone", input_ms, parset_filename, skymodel, initscript=initscript)
+def run_calibrate_standalone(parset_filename, input_ms, skymodel, replace_parmdb=False, replace_sourcedb=False, initscript=None):
+    args = ["calibrate-stand-alone", input_ms, parset_filename, skymodel]
+    kwargs = {}
+    if initscript:
+        kwargs["initscript"] = initscript
+    if replace_parmdb:
+        args.insert(1, "--replace-parmdb")
+    if replace_sourcedb:
+        args.insert(1, "--replace-sourcedb")
+    run_process(*args, **kwargs)
     return input_ms
 
 
