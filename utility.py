@@ -4,6 +4,7 @@ import errno
 import warnings
 import subprocess
 import lofar.parameterset
+from glob import glob
 from contextlib import contextmanager
 from tempfile import mkstemp, mkdtemp
 from shutil import copytree, rmtree
@@ -116,6 +117,17 @@ def run_calibrate_standalone(parset_filename, input_ms, skymodel, replace_parmdb
         args.insert(1, "--replace-sourcedb")
     run_process(*args, **kwargs)
     return input_ms
+
+
+def clear_calibrate_stand_alone_logs(directory=None):
+    # calibrate-stand-alone will create a log file according to the pattern
+    # calibrate-stand-alone_${PID}.log in the current working dir. If that
+    # file already exists, it will die. We rename old log files to ensure they
+    # can't cause it to break.
+    if not directory:
+        directory = os.getcwd()
+    for logfile in glob(os.path.join(directory, "calibrate-stand-alone*log")):
+        os.rename(logfile, logfile + ".old")
 
 
 def find_bad_stations(msname, scratchdir, initscript=None):

@@ -23,6 +23,7 @@ from utility import copy_to_work_area
 from utility import run_awimager
 from utility import run_ndppp
 from utility import run_calibrate_standalone
+from utility import clear_calibrate_stand_alone_logs
 from utility import find_bad_stations
 from utility import strip_stations
 from utility import limit_baselines
@@ -104,6 +105,7 @@ if __name__ == "__main__":
 
     # Calibration of each calibrator subband
     os.chdir(ms_cal['output_dir']) # Logs will get dumped here
+    clear_calibrate_stand_alone_logs()
     calcal_parset = get_parset_subset(input_parset, "calcal.parset", scratch)
     def calibrate_calibrator(cal):
         source = table("%s::OBSERVATION" % (cal,)).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
@@ -135,6 +137,7 @@ if __name__ == "__main__":
         print "Transferring solution from %s to %s" % (cal, target)
         parmdb_name = mkdtemp(dir=scratch)
         run_process("parmexportcal", "in=%s/instrument/" % (cal,), "out=%s" % (parmdb_name,))
+        clear_calibrate_stand_alone_logs()
         run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel)
     with time_code("Transfer of calibration solutions"):
         for target in ms_target.itervalues():
@@ -159,6 +162,7 @@ if __name__ == "__main__":
     print "Running phase only calibration"
     def phaseonly(target_info):
         os.chdir(target_info['output_dir']) # Logs will get dumped here
+        clear_calibrate_stand_alone_logs()
         run_calibrate_standalone(
             get_parset_subset(input_parset, "phaseonly.parset", scratch),
             target_info["combined"],
