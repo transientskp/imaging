@@ -6,7 +6,7 @@ import subprocess
 import lofar.parameterset
 from contextlib import contextmanager
 from tempfile import mkstemp, mkdtemp
-from shutil import copytree
+from shutil import copytree, rmtree
 from pyrap.tables import table
 
 @contextmanager
@@ -56,8 +56,9 @@ def copy_to_work_area(input_file_list, work_area):
     outputs = []
     for ms_name in input_file_list:
         output_name = os.path.join(work_area, os.path.basename(ms_name))
-        if not os.path.exists(output_name):
-            copytree(ms_name, output_name)
+        if os.path.exists(output_name):
+            rmtree(output_name)
+        copytree(ms_name, output_name)
         outputs.append(output_name)
     return outputs
 
