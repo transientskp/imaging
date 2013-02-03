@@ -156,7 +156,6 @@ if __name__ == "__main__":
 
 
     # Phase only calibration of combined target subbands
-    target_skymodel = input_parset.getString("phaseonly.skymodel")
     print "Running phase only calibration"
     def phaseonly(target_info):
         os.chdir(target_info['output_dir']) # Logs will get dumped here
