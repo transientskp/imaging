@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # Change to appropriate working directory for logs, etc.
     #os.chdir(input_parset.getString("working_dir"))
 
-    print "Locating input data and checking paths"
+    print "Locating calibrator data and checking paths"
     ms_cal = {}
     ms_cal["datafiles"] = get_file_list(
         input_parset.getString("input_dir"),
@@ -63,41 +63,55 @@ if __name__ == "__main__":
     )
     make_directory(ms_cal["output_dir"])
 
+    print "Copying calibrator subbands to output"
+    ms_cal["datafiles"] = copy_to_work_area(ms_cal["datafiles"], ms_cal["output_dir"])
+
+    print "Locating target data and checking paths"
+    # ms_target will be a dict that provides all the information we need to
+    # process each independent element of the observation, where an "element"
+    # is a combination of a beam (SAP) and a band (number of subbands)
     ms_target = {}
     for beam in range(input_parset.getInt("n_beams")):
-        target_info = {}
-        target_info['datafiles'] = get_file_list(
+        datafiles = get_file_list(
             input_parset.getString("input_dir"),
             input_parset.getString("target_obsid"),
             beam
         )
-        assert(len(target_info['datafiles']) == len(ms_cal['datafiles']))
-        target_info['output_dir'] = os.path.join(
-            input_parset.getString("output_dir"),
-            "target",
-            input_parset.getString("target_obsid"),
-            "SAP00%d" % (beam,)
-        )
-        make_directory(target_info["output_dir"])
-        target_info["output_ms"] = os.path.join(target_info["output_dir"], "%s.MS" % (input_parset.getString("target_obsid"),))
-        assert(not os.path.exists(target_info["output_ms"]))
-        target_info["output_im"] = os.path.join(target_info["output_dir"], "%s.img" % (input_parset.getString("target_obsid"),))
-        assert(not os.path.exists(target_info["output_im"]))
-        pointing = map(math.degrees, table("%s::FIELD" % target_info["datafiles"][0]).getcol("REFERENCE_DIR")[0][0])
-        target_info["skymodel"] = os.path.join(
-            input_parset.getString("skymodel_dir"),
-            "%.2f_%.2f.skymodel" % (pointing[0], pointing[1])
-        )
-        assert(os.path.exists(target_info["skymodel"]))
-        ms_target[beam] = target_info
+        start_sb = 0
+        for band, band_size in enumerate(input_parset.getIntVector("band_size")):
+            target_info = {}
+
+            target_info['datafiles'] = datafiles[start_sb:start_sb+band_size]
+            target_info['calfiles' ] = ms_cal["datafiles"][start_sb:start_sb+band_size]
+            assert(len(target_info['datafiles']) == len(target_info['calfiles']))
+
+            target_info['output_dir'] = os.path.join(
+                input_parset.getString("output_dir"),
+                "target",
+                input_parset.getString("target_obsid"),
+                "SAP00%d" % (beam,)
+            )
+
+            make_directory(target_info["output_dir"])
+
+            target_info["output_ms"] = os.path.join(target_info["output_dir"], "%s_SAP00%d_beam%d.MS" % (input_parset.getString("target_obsid"), beam, band))
+            assert(not os.path.exists(target_info["output_ms"]))
+            target_info["output_im"] = os.path.join(target_info["output_dir"], "%s_SAP00%d_beam%d.img" % (input_parset.getString("target_obsid"), beam, band))
+            assert(not os.path.exists(target_info["output_im"]))
+            pointing = map(math.degrees, table("%s::FIELD" % target_info["datafiles"][0]).getcol("REFERENCE_DIR")[0][0])
+            target_info["skymodel"] = os.path.join(
+                input_parset.getString("skymodel_dir"),
+                "%.2f_%.2f.skymodel" % (pointing[0], pointing[1])
+            )
+            assert(os.path.exists(target_info["skymodel"]))
+            ms_target["SAP00%d_beam%d" % (beam, band)] = target_info
+            start_sb += band_size
 
     # Copy to working directories
-    print "Copying calibrator subbands to output"
-    ms_cal["datafiles"] = copy_to_work_area(ms_cal["datafiles"], ms_cal["output_dir"])
-    for beam in ms_target.iterkeys():
-        print "Copying beam %d to scratch area" % (beam,)
-        ms_target[beam]["datafiles"] = copy_to_work_area(
-            ms_target[beam]["datafiles"], scratch
+    for name in ms_target.iterkeys():
+        print "Copying %s to scratch area" % (name,)
+        ms_target[name]["datafiles"] = copy_to_work_area(
+            ms_target[name]["datafiles"], scratch
         )
 
     # We'll run as many simultaneous jobs as we have CPUs
@@ -141,7 +155,7 @@ if __name__ == "__main__":
         run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel)
     with time_code("Transfer of calibration solutions"):
         for target in ms_target.itervalues():
-            pool.map(transfer_calibration, zip(ms_cal["datafiles"], target["datafiles"]))
+            pool.map(transfer_calibration, zip(target["calfiles"], target["datafiles"]))
 
     # Combine with NDPPP
     def combine_ms(target_info):
@@ -153,7 +167,7 @@ if __name__ == "__main__":
                 "msout": output
             }
         )
-        target_info["combined"] = output
+        target_info["combined_ms"] = output
     with time_code("Combining target subbands"):
         pool.map(combine_ms, ms_target.values())
 
@@ -165,13 +179,11 @@ if __name__ == "__main__":
         clear_calibrate_stand_alone_logs()
         run_calibrate_standalone(
             get_parset_subset(input_parset, "phaseonly.parset", scratch),
-            target_info["combined"],
+            target_info["combined_ms"],
             target_info["skymodel"]
         )
-    # Most Lisa nodes have 24 GB RAM.
-    # A single RSM bbs-reducer run takes about 6 GB.
-    # We should be able to handle 3 at once, plus a little overhead.
-    pool = ThreadPool(3)
+    # Most Lisa nodes have 24 GB RAM -- we don't want to run out
+    pool = ThreadPool(6)
     with time_code("Phase-only calibration"):
         pool.map(phaseonly, ms_target.values())
 

@@ -3,7 +3,8 @@
 input_dir = /home/jswinban/RSM_TEST_DEC2012
 cal_obsid = L81158
 target_obsid = L81157
-n_beams = 6 # For sanity checking
+n_beams = 6
+band_size = [12, 11, 11]
 output_dir = /home/jswinban/RSM_output/TEST_DEC2012/
 skymodel_dir = /home/jswinban/imaging/skymodels
 
