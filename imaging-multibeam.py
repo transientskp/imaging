@@ -132,12 +132,12 @@ if __name__ == "__main__":
     # Transfer calibration solutions to targets
     transfer_parset = get_parset_subset(input_parset, "transfer.parset", scratch)
     transfer_skymodel = input_parset.getString("transfer.skymodel")
+    clear_calibrate_stand_alone_logs()
     def transfer_calibration(ms_pair):
         cal, target = ms_pair
         print "Transferring solution from %s to %s" % (cal, target)
         parmdb_name = mkdtemp(dir=scratch)
         run_process("parmexportcal", "in=%s/instrument/" % (cal,), "out=%s" % (parmdb_name,))
-        clear_calibrate_stand_alone_logs()
         run_process("calibrate-stand-alone", "--parmdb", parmdb_name, target, transfer_parset, transfer_skymodel)
     with time_code("Transfer of calibration solutions"):
         for target in ms_target.itervalues():
@@ -168,6 +168,10 @@ if __name__ == "__main__":
             target_info["combined"],
             target_info["skymodel"]
         )
+    # Most Lisa nodes have 24 GB RAM.
+    # A single RSM bbs-reducer run takes about 6 GB.
+    # We should be able to handle 3 at once, plus a little overhead.
+    pool = ThreadPool(3)
     with time_code("Phase-only calibration"):
         pool.map(phaseonly, ms_target.values())
 
