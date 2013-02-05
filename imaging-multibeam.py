@@ -94,9 +94,9 @@ if __name__ == "__main__":
 
             make_directory(target_info["output_dir"])
 
-            target_info["output_ms"] = os.path.join(target_info["output_dir"], "%s_SAP00%d_beam%d.MS" % (input_parset.getString("target_obsid"), beam, band))
+            target_info["output_ms"] = os.path.join(target_info["output_dir"], "%s_SAP00%d_band%d.MS" % (input_parset.getString("target_obsid"), beam, band))
             assert(not os.path.exists(target_info["output_ms"]))
-            target_info["output_im"] = os.path.join(target_info["output_dir"], "%s_SAP00%d_beam%d.img" % (input_parset.getString("target_obsid"), beam, band))
+            target_info["output_im"] = os.path.join(target_info["output_dir"], "%s_SAP00%d_band%d.img" % (input_parset.getString("target_obsid"), beam, band))
             assert(not os.path.exists(target_info["output_im"]))
             pointing = map(math.degrees, table("%s::FIELD" % target_info["datafiles"][0]).getcol("REFERENCE_DIR")[0][0])
             target_info["skymodel"] = os.path.join(
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 "%.2f_%.2f.skymodel" % (pointing[0], pointing[1])
             )
             assert(os.path.exists(target_info["skymodel"]))
-            ms_target["SAP00%d_beam%d" % (beam, band)] = target_info
+            ms_target["SAP00%d_band%d" % (beam, band)] = target_info
             start_sb += band_size
 
     # Copy to working directories
@@ -175,13 +175,28 @@ if __name__ == "__main__":
     # Phase only calibration of combined target subbands
     print "Running phase only calibration"
     def phaseonly(target_info):
-        os.chdir(target_info['output_dir']) # Logs will get dumped here
-        clear_calibrate_stand_alone_logs()
-        run_calibrate_standalone(
-            get_parset_subset(input_parset, "phaseonly.parset", scratch),
-            target_info["combined_ms"],
-            target_info["skymodel"]
-        )
+        # We chdir to the scratch directory initially, so that logs get dumped
+        # there, then we'll copy the logs to the output directory when we're
+        # done.
+        try:
+            os.chdir(os.path.dirname(target_info["combined_ms"]))
+            run_calibrate_standalone(
+                get_parset_subset(input_parset, "phaseonly.parset", scratch),
+                target_info["combined_ms"],
+                target_info["skymodel"]
+            )
+            for logfile in glob.glob(
+                os.path.join(
+                    os.path.dirname(target_info["combined_ms"]),
+                    "*log"
+                )
+            ):
+                shutil.copy(logfile, target_info["output_dir"])
+        except Exception, e:
+            print "Error in phaseonly with %s" % (target_info["combined_ms"])
+            print str(e)
+            raise
+
     # Most Lisa nodes have 24 GB RAM -- we don't want to run out
     pool = ThreadPool(6)
     with time_code("Phase-only calibration"):
@@ -249,3 +264,4 @@ if __name__ == "__main__":
                 },
                 initscript=awim_init
             )
+            #TODO: addImagingInfo
