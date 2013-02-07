@@ -132,12 +132,13 @@ def clear_calibrate_stand_alone_logs(directory=None):
 
 def find_bad_stations(msname, scratchdir, initscript=None):
     # Using scripts developed by Martinez & Pandey
-    statsdir = os.path.join(scratchdir, "stats")
+    statsdir = os.path.join(mkdtemp(dir=scratchdir))
     run_process("asciistats.py", "-i", msname, "-r", statsdir, initscript=initscript)
     statsfile = os.path.join(statsdir, os.path.basename(msname) + ".stats")
-    run_process("statsplot.py", "-i", statsfile, "-o", os.path.join(scratchdir, "stats"), initscript=initscript)
+    output_basename = os.path.join(statsdir, "stats")
+    run_process("statsplot.py", "-i", statsfile, "-o", output_basename, initscript=initscript)
     bad_stations = []
-    with open(os.path.join(scratchdir, "stats.tab"), "r") as f:
+    with open(output_basename + ".tab", "r") as f:
         for line in f:
             if line.strip()[0] == "#": continue
             if line.split()[-1] == "True":
