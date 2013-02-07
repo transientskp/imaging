@@ -5,6 +5,7 @@ import sys
 import numpy
 import math
 import glob
+import shutil
 import lofar.parameterset
 
 from multiprocessing import cpu_count
