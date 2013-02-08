@@ -265,4 +265,11 @@ if __name__ == "__main__":
                 },
                 initscript=awim_init
             )
-            #TODO: addImagingInfo
+            run_process(
+                "addImagingInfo",
+                "%s.restored.corr" % target_info["output_im"],
+                "",
+                "0",
+                str(maxbl),
+                target_info["output_ms"]
+            )
