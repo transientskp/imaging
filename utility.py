@@ -173,7 +173,7 @@ def limit_baselines(msin, msout, maxbl):
 def estimate_noise(msin, parset_name, wmax, box_size, scratchdir, awim_init=None):
     noise_image = mkdtemp(dir=scratchdir)
 
-    run_awimager(parset,
+    run_awimager(parset_name,
         {
             "ms": msin,
             "image": noise_image,

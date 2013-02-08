@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
     # Combine with NDPPP
     def combine_ms(target_info):
-        output = os.path.join(scratch, mkdtemp(dir=scratch), "combined.MS")
+        output = os.path.join(mkdtemp(dir=scratch), "combined.MS")
         run_ndppp(
             get_parset_subset(input_parset, "combine.parset", scratch),
             {
@@ -199,9 +199,9 @@ if __name__ == "__main__":
             raise
 
     # Most Lisa nodes have 24 GB RAM -- we don't want to run out
-    pool = ThreadPool(6)
+    calpool = ThreadPool(6)
     with time_code("Phase-only calibration"):
-        pool.map(phaseonly, ms_target.values())
+        calpool.map(phaseonly, ms_target.values())
 
     # Strip bad stations.
     # Note that the combined, calibrated, stripped MS is one of our output
@@ -234,8 +234,8 @@ if __name__ == "__main__":
                 target_info["bl_limit_ms"],
                 noise_parset_name,
                 maxbl,
-                scratch,
-                input_parset.getFloat("noise.box_size")
+                input_parset.getFloat("noise.box_size"),
+                scratch
             )
 
     # Make a mask for cleaning
@@ -259,7 +259,7 @@ if __name__ == "__main__":
                 {
                     "ms": target_info["bl_limit_ms"],
                     "mask": target_info["mask"],
-                    "threshold": "%fJy" % (threshold,),
+                    "threshold": "%fJy" % (target_info["threshold"],),
                     "image": target_info["output_im"],
                     "wmax": maxbl
                 },
