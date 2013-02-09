@@ -107,7 +107,6 @@ phaseonly.parset.Step.correct.Output.Column = CORRECTED_DATA
 awimager.initscript = /home/jswinban/sw/awimager/lofarinit.sh
 
 # AWimager parameters for noise calculation
-# We use operation=csclean with niter=1 to make a dirty image
 noise.box_size = 25                # int
 noise.multiplier = 10              # float
 noise.parset.niter = 0             # int
