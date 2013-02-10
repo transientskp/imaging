@@ -30,16 +30,10 @@ from utility import strip_stations
 from utility import limit_baselines
 from utility import estimate_noise
 from utility import make_mask
+from utility import get_file_list
 
 # All temporary writes go to scratch space on the node.
 scratch = os.getenv("TMPDIR")
-
-def get_file_list(root_dir, obsid, beam):
-    return sorted(
-        glob.glob(os.path.join(
-            root_dir, obsid, "%s_SAP00%d_SB*_uv.MS.dppp" % (obsid, beam)
-        ))
-    )
 
 if __name__ == "__main__":
     # Our single command line argument is a parset containing all

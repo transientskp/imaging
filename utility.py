@@ -10,6 +10,15 @@ from tempfile import mkstemp, mkdtemp
 from shutil import copytree, rmtree
 from pyrap.tables import table
 
+
+def get_file_list(root_dir, obsid, beam):
+    return sorted(
+        glob(os.path.join(
+            root_dir, obsid, "%s_SAP00%d_SB*_uv.MS.dppp" % (obsid, beam)
+        ))
+    )
+
+
 @contextmanager
 def time_code(name):
     start_time = time.time()
