@@ -268,7 +268,7 @@ if __name__ == "__main__":
             run_process(
                 "addImagingInfo",
                 "%s.restored.corr" % target_info["output_im"],
-                "",
+                "", # No sky model specified
                 "0",
                 str(maxbl),
                 target_info["output_ms"]
