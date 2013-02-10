@@ -120,7 +120,7 @@ noise.parset.padding = 1.0         # float
 noise.parset.data = CORRECTED_DATA # str
 
 # Limit uv coverage of data used for imaging
-limit.max_baseline = 3000 # float
+limit.max_baseline = 6000 # float
 
 # Path to msss_mask.py executable
 make_mask.executable = /home/jswinban/imaging/msss_mask.py
