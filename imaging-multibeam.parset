@@ -10,7 +10,7 @@ skymodel_dir = /home/jswinban/imaging/skymodels
 
 # Calibration of calibrator subbands
 calcal.parset.Strategy.InputColumn = DATA
-calcal.parset.Strategy.ChunkSize = 120
+calcal.parset.Strategy.ChunkSize = 0
 calcal.parset.Strategy.Baselines = CS*&RS*;RS*&;CS*&
 calcal.parset.Strategy.UseSolver = F
 calcal.parset.Strategy.Correlations = []
@@ -48,7 +48,7 @@ pdbclip.sigma = 1.0
 # Transfer solution from calibrator to target
 transfer.skymodel = /home/jswinban/imaging/skymodels/dummy.skymodel
 transfer.parset.Strategy.InputColumn = DATA
-transfer.parset.Strategy.ChunkSize = 120
+transfer.parset.Strategy.ChunkSize = 0
 transfer.parset.Strategy.UseSolver = F
 transfer.parset.Strategy.Correlations = []
 transfer.parset.Strategy.Steps = [correct]
@@ -69,7 +69,7 @@ combine.parset.steps=[]
 phaseonly.parset.Strategy.InputColumn = DATA
 phaseonly.parset.Strategy.TimeRange = []
 phaseonly.parset.Strategy.Baselines = *&
-phaseonly.parset.Strategy.ChunkSize = 100
+phaseonly.parset.Strategy.ChunkSize = 0
 phaseonly.parset.Strategy.UseSolver = F
 phaseonly.parset.Strategy.Steps = [solve, correct]
 phaseonly.parset.Step.solve.Operation = SOLVE
@@ -113,8 +113,8 @@ noise.parset.operation = image     # str
 noise.parset.npix = 256            # int
 noise.parset.stokes = IQUV         # str
 noise.parset.robust = 0            # float
-noise.parset.cellsize = 30arcsec   # str
-noise.parset.wprojplanes = 128     # int
+noise.parset.cellsize = 25arcsec   # str
+noise.parset.wprojplanes = 257     # int
 noise.parset.timewindow = 300      # int
 noise.parset.padding = 1.0         # float
 noise.parset.data = CORRECTED_DATA # str
@@ -127,9 +127,9 @@ make_mask.executable = /home/jswinban/imaging/msss_mask.py
 
 # AWimager parameters for imaging
 image.parset.robust = 0            # float
-image.parset.cellsize = 30arcsec   # str
-image.parset.npix = 512            # int
-image.parset.wprojplanes = 128     # int
+image.parset.cellsize = 25arcsec   # str
+image.parset.npix = 1024           # int
+image.parset.wprojplanes = 257     # int
 image.parset.niter = 20000         # int
 image.parset.timewindow = 300      # int
 image.parset.padding = 1.0         # float
