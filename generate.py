@@ -12,12 +12,12 @@ from utility import get_file_list
 N_BEAMS = 6
 BAND_SIZE = [12, 11, 11]
 INPUT_DIR = "/home/jswinban/RSM_TEST_DEC2012"
-OUTPUT_DIR = "/home/jswinban/RSM_output/TEST_DEC2012"
+OUTPUT_DIR = "/home/jswinban/RSM_output/TEST_DEC2012-calremote"
 SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
 
 TEMPLATE_JOB = """
-    #PBS -lwalltime=4:00:00
-                             # 4 hours wall-clock
+    #PBS -lwalltime=6:00:00
+                             # 6 hours wall-clock
                              # time allowed for this job
     #PBS -lnodes=1:ppn=8
                              # 1 node for this job
