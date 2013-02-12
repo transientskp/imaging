@@ -260,6 +260,7 @@ if __name__ == "__main__":
                 },
                 initscript=awim_init
             )
+            print "Updaging metadata in %s" % target_info["output_im"]
             run_process(
                 "addImagingInfo",
                 "%s.restored.corr" % target_info["output_im"],
@@ -268,3 +269,5 @@ if __name__ == "__main__":
                 str(maxbl),
                 target_info["output_ms"]
             )
+            print "Saving mask for %s to %s" % (target_info["output_im"], target_info["output_im"] + ".mask")
+            shutil.copytree(target_info["mask"], target_info["output_im"] + ".mask")
