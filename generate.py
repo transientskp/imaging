@@ -8,16 +8,23 @@ import lofar.parameterset
 from utility import make_directory
 from utility import get_file_list
 
-# Settings for December 2012 test observation
-N_BEAMS = 6
-BAND_SIZE = [12, 11, 11]
-INPUT_DIR = "/home/jswinban/RSM_TEST_DEC2012"
-OUTPUT_DIR = "/home/jswinban/RSM_output/TEST_DEC2012-calremote"
+## Settings for December 2012 test observation
+#N_BEAMS = 6
+#BAND_SIZE = [12, 11, 11]
+#INPUT_DIR = "/home/jswinban/RSM_TEST_DEC2012"
+#OUTPUT_DIR = "/home/jswinban/RSM_output/TEST_DEC2012-calremote"
+#SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
+
+# Settings for February 2012 RSM run 0
+N_BEAMS=6
+BAND_SIZE=[10, 10, 10, 10]
+INPUT_DIR = "/home/jswinban/RSM_run0"
+OUTPUT_DIR = "/home/jswinban/RSM_run0_output"
 SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
 
 TEMPLATE_JOB = """
-    #PBS -lwalltime=6:00:00
-                             # 6 hours wall-clock
+    #PBS -lwalltime=7:00:00
+                             # 7 hours wall-clock
                              # time allowed for this job
     #PBS -lnodes=1:ppn=8
                              # 1 node for this job
