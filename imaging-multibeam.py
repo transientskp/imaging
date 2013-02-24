@@ -231,7 +231,7 @@ if __name__ == "__main__":
                 input_parset.getFloat("noise.box_size"),
                 scratch
             )
-            print "Threshold for %s is %f Jy" (target_info["output_ms"], target_info["threshold"])
+            print "Threshold for %s is %f Jy" % (target_info["output_ms"], target_info["threshold"])
 
     # Make a mask for cleaning
     aw_parset_name = get_parset_subset(input_parset, "image.parset", scratch)
