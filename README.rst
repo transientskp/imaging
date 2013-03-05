@@ -9,6 +9,9 @@ Dependencies
 ------------
 
 * The `Offline` and `LofarFT` packages from the LOFAR software repository;
+* The "special" version of `awimager` from `r22783` of the
+  `LOFAR-Task3482-imager` branch of the LOFAR repository (until this branch is
+  merged to trunk).
 * `pyrap <https://code.google.com/p/pyrap/>`_;
 * `NumPy <http://www.scipy.org/>`_.
 
@@ -16,11 +19,11 @@ Input Data
 ----------
 
 Each unit of work consists of a pair of observations: a calibrator and a
-target. The calibrator observation consists of a number *N* of subbands directed
-towards a known calibrator source. This is immediately followed by *N* * *M*
-subbands, tiling out a large area of the sky around the zenith with *M* beams.
-Each of the calibrator subbands has a 1-to-M relationship with the target
-subbands at the same frequency.
+target. The calibrator observation consists of a number *N* of subbands
+directed towards a known calibrator source. This is immediately followed by
+*N* * *M* target subbands, tiling out a large area of the sky around the
+zenith with *M* beams.  Each of the calibrator subbands has a 1-to-M
+relationship with the target subbands at the same frequency.
 
 In recent observations *N* = 40 and *M* = 6, but this is potentially variable in
 future.
@@ -77,13 +80,14 @@ following workflow:
       imaging.
 
    #. A temporary, "dirty" image is constructed using `awimager` (LOFAR
-      imaging repository) and used to calculate the threshold to be used for
-      cleaning the final image.
+      imaging repository trunk) and used to calculate the threshold to be used
+      for cleaning the final image.
 
    #. A "mask" is constructed, based on the contents of the appropriate
       skymodel, using the `msss_mask.py` script included in this repository.
 
-   #. The final image is constructed using `awimager`.
+   #. The final image is constructed using `awimager` (from LOFAR repository
+      branch `LOFAR-Task3482-imager`).
 
    #. Required metadata is added to the outpit image using `addImagingInfo`
       from the LOFAR imaging repository.
