@@ -116,7 +116,7 @@ noise.parset.robust = 0            # float
 noise.parset.cellsize = 25arcsec   # str
 noise.parset.wprojplanes = 257     # int
 noise.parset.timewindow = 300      # int
-noise.parset.padding = 1.0         # float
+noise.parset.padding = 1.5         # float
 noise.parset.data = CORRECTED_DATA # str
 
 # Limit uv coverage of data used for imaging
@@ -132,7 +132,7 @@ image.parset.npix = 1024           # int
 image.parset.wprojplanes = 257     # int
 image.parset.niter = 20000         # int
 image.parset.timewindow = 300      # int
-image.parset.padding = 1.0         # float
+image.parset.padding = 1.5         # float
 image.parset.cyclefactor = 1.5     # float
 image.parset.data = CORRECTED_DATA # str
 image.parset.operation = csclean   # str
