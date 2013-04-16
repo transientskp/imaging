@@ -26,8 +26,9 @@ import os
 import re
 import sys
 import shutil
+import pytz
 
-OUTPUT_ROOT = "/home/jswinban/RSM_run2"
+OUTPUT_ROOT = "/home/jswinban/RSM_run2_sorted"
 BEAM_EDGES = [40, 80, 120, 160, 200, 240, 244]
 
 julian_epoch = datetime.datetime(1858, 11, 17)
@@ -45,12 +46,12 @@ obs_mapping = {}
 with open("observations.txt", "r") as obs_file:
     for line in obs_file:
         obsid = line.split()[0]
-        date = datetime.datetime.strptime(line[60:80].strip(), "%Y-%m-%d %H:%M:%S")
+        date = datetime.datetime.strptime(line[60:80].strip(), "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.utc)
         obs_mapping[date] = obsid
 
 for ms in sys.argv[1:]:
     t = pt.table("%s::OBSERVATION" % (ms,))
-    obs_date = datetime.datetime.fromtimestamp(mjds_to_unix(t.getcol("TIME_RANGE")[0][0]))
+    obs_date = datetime.datetime.fromtimestamp(mjds_to_unix(t.getcol("TIME_RANGE")[0][0]), pytz.utc)
     obsid = obs_mapping[obs_date]
     obs_subband = re.search(r"SB([0-9]{3})", ms).groups()[0]
     obs_sap = sb_to_sap(int(obs_subband))
