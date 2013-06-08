@@ -23,6 +23,17 @@ def read_ms_list(filename):
     return ms_list
 
 
+def sorted_ms_list(dirname, suffix="*_uv.MS.dppp"):
+    """
+    Return a list of all MSs (or files with names ending with `suffix`) in
+    `dirname`, sorted according to subband number.
+    """
+    return sorted(
+        glob(os.path.join(dirname, suffix)),
+        key=lambda ms: re.search(r"SB(\d{3})", ms).groups()[0]
+    )
+
+
 def get_file_list(root_dir, obsid, beam):
     return sorted(
         glob(os.path.join(
