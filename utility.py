@@ -11,6 +11,18 @@ from shutil import copytree, rmtree
 from pyrap.tables import table
 
 
+def read_ms_list(filename):
+    """
+    Read a list of MeasurementSets stored one per line in `filename`. If all
+    MSs exist, return the list; if one or more are missing, raise.
+    """
+    with open(filename, 'r') as f:
+        ms_list = f.readlines()
+    for ms in ms_list:
+        assert(os.path.exists(ms))
+    return ms_list
+
+
 def get_file_list(root_dir, obsid, beam):
     return sorted(
         glob(os.path.join(

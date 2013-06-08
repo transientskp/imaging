@@ -15,11 +15,11 @@ from utility import get_file_list
 #OUTPUT_DIR = "/home/jswinban/RSM_output/TEST_DEC2012-calremote"
 #SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
 
-# Settings for February 2012 RSM run 0
-N_BEAMS=6
-BAND_SIZE=[10, 10, 10, 10]
-INPUT_DIR = "/home/jswinban/RSM_run0"
-OUTPUT_DIR = "/home/jswinban/RSM_run0_output"
+# Settings for Cycle 0 RSM runs
+N_BEAMS = 6
+BAND_SIZE = [10, 10, 10, 10]
+INPUT_DIR = "/home/jswinban/test_run"
+OUTPUT_DIR = "/home/jswinban/test_run_output"
 SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
 
 TEMPLATE_JOB = """
@@ -41,19 +41,29 @@ if __name__ == "__main__":
     cal_obsid = sys.argv[2]
     template_parset = sys.argv[3]
 
-    # Check data exists: we should have sum(BAND_SIZE) subbands in each beam,
-    # N_BEAMS beams per target_obsid, and 1 beam per cal_obsid
-    assert(len(get_file_list(INPUT_DIR, cal_obsid, 0)) == sum(BAND_SIZE))
-    for beam in range(N_BEAMS):
-        assert(len(get_file_list(INPUT_DIR, target_obsid, beam)) == sum(BAND_SIZE))
-
     CAL_OUTPUT = os.path.join(OUTPUT_DIR, "calibrator", cal_obsid)
     TARGET_OUTPUT = os.path.join(OUTPUT_DIR, "target", target_obsid)
     make_directory(CAL_OUTPUT)
     make_directory(TARGET_OUTPUT)
 
+    # Check data exists: we should have sum(BAND_SIZE) subbands in each beam,
+    # N_BEAMS beams per target_obsid, and 1 beam per cal_obsid.
+    # We write the validated data to input files for the imaging pipeline.
+    ms_list = get_file_list(INPUT_DIR, cal_obsid, 0)
+    assert(len(ms_list) == sum(BAND_SIZE))
+    with open(os.path.join(TARGET_OUTPUT, "cal_ms_list"), 'w') as f:
+        for ms in ms_list:
+            f.write("%s\n", ms)
+    with open(os.path.join(TARGET_OUTPUT, "target_ms_list"), 'w') as f:
+        for beam in range(N_BEAMS):
+            ms_list = get_file_list(INPUT_DIR, target_obsid, beam)
+            assert(len(ms_list) == sum(BAND_SIZE))
+            for ms in ms_list:
+                f.write("%s\n", ms)
+
     parset = lofar.parameterset.parameterset(template_parset)
-    parset.replace("input_dir", INPUT_DIR)
+    parset.replace("cal_ms_list", os.path.join(TARGET_OUTPUT, "cal_ms_list"))
+    parset.replace("target_ms_list", os.path.join(TARGET_OUTPUT, "target_ms_list"))
     parset.replace("cal_obsid", cal_obsid)
     parset.replace("target_obsid", target_obsid)
     parset.replace("n_beams", str(N_BEAMS))

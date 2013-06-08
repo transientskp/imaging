@@ -1,6 +1,11 @@
 # Control of the imaging script
 
-input_dir = /home/jswinban/RSM_TEST_DEC2012
+# NB values in this section must be customized per run: see eg generate.py.
+# The below serves as an example.
+
+# cal_ms_list & target_ms_list must be sorted.
+cal_ms_list = /home/jswinban/calib.txt
+target_ms_list = /home/jswinban/target.txt
 cal_obsid = L81158
 target_obsid = L81157
 n_beams = 6
