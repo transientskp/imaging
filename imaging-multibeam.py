@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     print "Locating calibrator data and checking paths"
     ms_cal = {}
-    ms_cal["datafiles"] = read_ms_list(input_parset.getString(cal_ms_list))
+    ms_cal["datafiles"] = read_ms_list(input_parset.getString("cal_ms_list"))
     assert(len(ms_cal["datafiles"]) == sbs_per_beam)
     ms_cal["output_dir"] = os.path.join(
         input_parset.getString("output_dir"),
@@ -64,14 +64,14 @@ if __name__ == "__main__":
     # is a combination of a beam (SAP) and a band (number of subbands)
     ms_target = {}
 
-    target_mss = read_ms_list(input_parset.getString(target_ms_list))
+    target_mss = read_ms_list(input_parset.getString("target_ms_list"))
     assert(len(target_mss) == input_parset.getInt("n_beams") * sbs_per_beam)
 
     for beam, data in enumerate(zip(*[iter(target_mss)]*sbs_per_beam)):
         start_sb = 0
         for band, band_size in enumerate(input_parset.getIntVector("band_size")):
             target_info = {}
-            target_info['datafiles'] = datafiles[start_sb:start_sb+band_size]
+            target_info['datafiles'] = target_mss[start_sb:start_sb+band_size]
             target_info['calfiles' ] = ms_cal["datafiles"][start_sb:start_sb+band_size]
             assert(len(target_info['datafiles']) == len(target_info['calfiles']))
 

@@ -1,3 +1,4 @@
+import re
 import os
 import time
 import errno
@@ -17,7 +18,7 @@ def read_ms_list(filename):
     MSs exist, return the list; if one or more are missing, raise.
     """
     with open(filename, 'r') as f:
-        ms_list = f.readlines()
+        ms_list = [l.strip() for l in f.readlines()]
     for ms in ms_list:
         assert(os.path.exists(ms))
     return ms_list

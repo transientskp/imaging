@@ -6,7 +6,7 @@ import textwrap
 import lofar.parameterset
 
 from utility import make_directory
-from utility import get_file_list
+from utility import sorted_ms_list
 
 ## Settings for December 2012 test observation
 #N_BEAMS = 6
@@ -49,17 +49,17 @@ if __name__ == "__main__":
     # Check data exists: we should have sum(BAND_SIZE) subbands in each beam,
     # N_BEAMS beams per target_obsid, and 1 beam per cal_obsid.
     # We write the validated data to input files for the imaging pipeline.
-    ms_list = sorted_ms_list(os.path.join(INPUT_DIR, cal_obsid))
+    ms_list = sorted_ms_list(os.path.join(INPUT_DIR, cal_obsid))[:sum(BAND_SIZE)]
     assert(len(ms_list) == sum(BAND_SIZE))
     with open(os.path.join(TARGET_OUTPUT, "cal_ms_list"), 'w') as f:
         for ms in ms_list:
-            f.write("%s\n", ms)
+            f.write("%s\n" % ms)
 
     ms_list = sorted_ms_list(os.path.join(INPUT_DIR, target_obsid))[:sum(BAND_SIZE)*N_BEAMS]
     assert(len(ms_list) == sum(BAND_SIZE) * N_BEAMS)
     with open(os.path.join(TARGET_OUTPUT, "target_ms_list"), 'w') as f:
         for ms in ms_list:
-            f.write("%s\n", ms)
+            f.write("%s\n" % ms)
 
     parset = lofar.parameterset.parameterset(template_parset)
     parset.replace("cal_ms_list", os.path.join(TARGET_OUTPUT, "cal_ms_list"))
