@@ -233,27 +233,12 @@ if __name__ == "__main__":
             )
             print "Threshold for %s is %f Jy" % (target_info["output_ms"], target_info["threshold"])
 
-    # Make a mask for cleaning
-    aw_parset_name = get_parset_subset(input_parset, "image.parset", scratch)
-    with time_code("Making mask"):
-        for target_info in ms_target.values():
-            print "Making mask for %s" % target_info["output_ms"]
-            target_info["mask"] = make_mask(
-                target_info["bl_limit_ms"],
-                aw_parset_name,
-                target_info["skymodel"],
-                input_parset.getString("make_mask.executable"),
-                scratch,
-                awim_init=awim_init
-            )
-
     with time_code("Making images"):
         for target_info in ms_target.values():
             print "Making image %s" % target_info["output_im"]
             print run_awimager(aw_parset_name,
                 {
                     "ms": target_info["bl_limit_ms"],
-                    "mask": target_info["mask"],
                     "threshold": "%fJy" % (target_info["threshold"],),
                     "image": target_info["output_im"],
                     "wmax": maxbl
@@ -270,4 +255,3 @@ if __name__ == "__main__":
                 target_info["output_ms"]
             )
             print "Saving mask for %s to %s" % (target_info["output_im"], target_info["output_im"] + ".mask")
-            shutil.copytree(target_info["mask"], target_info["output_im"] + ".mask")
