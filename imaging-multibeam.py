@@ -109,8 +109,11 @@ if __name__ == "__main__":
             ms_target[name]["datafiles"], scratch
         )
 
-    # We'll run as many simultaneous jobs as we have CPUs
-    pool = ThreadPool(cpu_count())
+    # Limit the number of simultaneous jobs.
+    nthreads = input_parset.getInt("calcal.nthreads")
+    if nthreads == 0:
+        nthreads = cpu_count()
+    pool = ThreadPool(nthreads)
 
     # Calibration of each calibrator subband
     os.chdir(ms_cal['output_dir']) # Logs will get dumped here
@@ -192,8 +195,12 @@ if __name__ == "__main__":
             print str(e)
             raise
 
+    # Limit the number of simultaneous jobs.
     # Most Lisa nodes have 24 GB RAM -- we don't want to run out
-    calpool = ThreadPool(6)
+    nthreads = input_parset.getInt("phaseonly.nthreads")
+    if nthreads == 0:
+        nthreads = cpu_count()
+    calpool = ThreadPool(nthreads)
     with time_code("Phase-only calibration"):
         calpool.map(phaseonly, ms_target.values())
 
