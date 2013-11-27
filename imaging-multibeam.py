@@ -31,6 +31,7 @@ from utility import limit_baselines
 from utility import estimate_noise
 from utility import make_mask
 from utility import read_ms_list
+from utility import generate_skymodel
 
 # All temporary writes go to scratch space on the node.
 scratch = os.getenv("TMPDIR")
@@ -90,8 +91,12 @@ if __name__ == "__main__":
             assert(not os.path.exists(target_info["output_im"]))
             pointing = map(math.degrees, table("%s::FIELD" % target_info["datafiles"][0]).getcol("REFERENCE_DIR")[0][0])
             target_info["skymodel"] = os.path.join(
-                input_parset.getString("skymodel_dir"),
-                "%.2f_%.2f.skymodel" % (pointing[0], pointing[1])
+                scratch, "%.2f_%.2f.skymodel" % (pointing[0], pointing[1])
+            )
+            generate_skymodel(
+                input_parset.makeSubset("gsm."),
+                pointing[0], pointing[1],
+                target_info["skymodel"]
             )
             assert(os.path.exists(target_info["skymodel"]))
             ms_target["SAP00%d_band%d" % (beam, band)] = target_info
