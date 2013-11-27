@@ -14,21 +14,27 @@ from shutil import copytree, rmtree
 from pyrap.tables import table
 
 
-def generate_skymodel(
-    db_host, db_dbase, db_user, db_passwd, db_port, db_autocommit,
-    ra, dec, radius, vlss_cutoff, assoc_theta, output_filename
-):
+def generate_skymodel(gsm_parset, ra, dec, output_filename):
     """
     Connect to the GSM database at the location specified. Extract a skymodel
     file. Save it to the specified location.
     """
-    with closing(db.connect(
-        hostname=db_host, database=db_dbase, username=db_user,
-        password=db_passwd, port=db_port, autocommit=db_autocommit
-    )) as conn:
+    with closing(
+        db.connect(
+            hostname=gsm_parset.getString("db_host"),
+            database=gsm_parset.getString("db_dbase"),
+            username=gsm_parset.getString("db_user"),
+            password=gsm_parset.getString("db_passwd"),
+            port=gsm_parset.getInt("db_port"),
+            autocommit=gsm_parset.getBool("db_autocommit")
+        )
+    ) as conn:
         lofar.gsm.gsmutils.expected_fluxes_in_fov(
-            conn, ra, dec, radius, assoc_theta, output_filename,
-            vlss_flux_cutoff=vlss_cutoff
+            conn, ra, dec,
+            gsm_parset.getFloat("radius"),
+            gsm_parset.getFloat("assoc_theta"),
+            output_filename,
+            vlss_flux_cutoff=gsm_parset.getFloat("vlss_cutoff")
         )
     return output_filename
 
