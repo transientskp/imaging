@@ -5,11 +5,32 @@ import errno
 import warnings
 import subprocess
 import lofar.parameterset
+import lofar.gsm.gsmutils
+import monetdb.sql as db
 from glob import glob
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from tempfile import mkstemp, mkdtemp
 from shutil import copytree, rmtree
 from pyrap.tables import table
+
+
+def generate_skymodel(
+    db_host, db_dbase, db_user, db_passwd, db_port, db_autocommit,
+    ra, dec, radius, vlss_cutoff, assoc_theta, output_filename
+):
+    """
+    Connect to the GSM database at the location specified. Extract a skymodel
+    file. Save it to the specified location.
+    """
+    with closing(db.connect(
+        hostname=db_host, database=db_dbase, username=db_user,
+        password=db_passwd, port=db_port, autocommit=db_autocommit
+    )) as conn:
+        lofar.gsm.gsmutils.expected_fluxes_in_fov(
+            conn, ra, dec, radius, assoc_theta, output_filename,
+            vlss_flux_cutoff=vlss_cutoff
+        )
+    return output_filename
 
 
 def read_ms_list(filename):
