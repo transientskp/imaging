@@ -13,6 +13,17 @@ band_size = [12, 11, 11]
 output_dir = /home/jswinban/RSM_output/TEST_DEC2012-3/
 skymodel_dir = /home/jswinban/imaging/skymodels
 
+# GSM configuration
+gsm.db_host = loui
+gsm.db_dbase = gsm
+gsm.db_user = gsm
+gsm.db_passwd = msss
+gsm.db_port = 51000
+gsm.db_autocommit = True
+gsm.radius = 5
+gsm.vlss_cutoff = 0.1
+gsm.assoc_theta = 0.00278
+
 # Calibration of calibrator subbands
 calcal.parset.Strategy.InputColumn = DATA
 calcal.parset.Strategy.ChunkSize = 0
