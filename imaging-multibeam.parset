@@ -4,13 +4,13 @@
 # The below serves as an example.
 
 # cal_ms_list & target_ms_list must be sorted.
-cal_ms_list = /home/jswinban/calib.txt
-target_ms_list = /home/jswinban/target.txt
 cal_obsid = L81158
 target_obsid = L81157
+calibrator_input_glob = /scratch/jds/input/L107845/*_uv.dppp.MS
+target_input_glob = /scratch/jds/input/L107846/*_uv.dppp.MS
 n_beams = 6
-band_size = [12, 11, 11]
-output_dir = /home/jswinban/RSM_output/TEST_DEC2012-3/
+band_size = [10, 10, 10, 10]
+output_dir = /scratch/jds/output/L107846
 skymodel_dir = /home/jswinban/imaging/skymodels
 
 # GSM configuration

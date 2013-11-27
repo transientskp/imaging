@@ -6,6 +6,7 @@ import numpy
 import math
 import glob
 import shutil
+import tempfile
 import lofar.parameterset
 
 from multiprocessing import cpu_count
@@ -29,14 +30,14 @@ from utility import find_bad_stations
 from utility import strip_stations
 from utility import limit_baselines
 from utility import estimate_noise
-from utility import make_mask
-from utility import read_ms_list
+from utility import sorted_ms_list
 from utility import generate_skymodel
 
-# All temporary writes go to scratch space on the node.
-scratch = os.getenv("TMPDIR")
-
 if __name__ == "__main__":
+    # All temporary writes go to scratch space.
+    # NB should clean up when we exit.
+    scratch = tempfile.mkdtemp(prefix=os.getenv("TMPDIR"))
+
     # Our single command line argument is a parset containing all
     # configuration information we'll need.
     input_parset = lofar.parameterset.parameterset(sys.argv[1])
@@ -46,8 +47,9 @@ if __name__ == "__main__":
     sbs_per_beam = sum(input_parset.getIntVector("band_size"))
 
     print "Locating calibrator data and checking paths"
+
     ms_cal = {}
-    ms_cal["datafiles"] = read_ms_list(input_parset.getString("cal_ms_list"))
+    ms_cal["datafiles"] = sorted_ms_list(input_parset.getString("calibrator_input_glob"))
     assert(len(ms_cal["datafiles"]) == sbs_per_beam)
     ms_cal["output_dir"] = os.path.join(
         input_parset.getString("output_dir"),
@@ -65,7 +67,10 @@ if __name__ == "__main__":
     # is a combination of a beam (SAP) and a band (number of subbands)
     ms_target = {}
 
-    target_mss = read_ms_list(input_parset.getString("target_ms_list"))
+    # We need n_beams * sbs_per_beam MSs. If we have more than that, we trim
+    # the array; if less, we'll trigger the assertion.
+    target_mss = sorted_ms_list(input_parset.getString("target_input_glob"))
+    target_mss = target_mss[:input_parset.getInt("n_beams") * sbs_per_beam]
     assert(len(target_mss) == input_parset.getInt("n_beams") * sbs_per_beam)
 
     for beam, data in enumerate(zip(*[iter(target_mss)]*sbs_per_beam)):
@@ -93,11 +98,12 @@ if __name__ == "__main__":
             target_info["skymodel"] = os.path.join(
                 scratch, "%.2f_%.2f.skymodel" % (pointing[0], pointing[1])
             )
-            generate_skymodel(
-                input_parset.makeSubset("gsm."),
-                pointing[0], pointing[1],
-                target_info["skymodel"]
-            )
+            if not os.path.exists(target_info["skymodel"]):
+                generate_skymodel(
+                    input_parset.makeSubset("gsm."),
+                    pointing[0], pointing[1],
+                    target_info["skymodel"]
+                )
             assert(os.path.exists(target_info["skymodel"]))
             ms_target["SAP00%d_band%d" % (beam, band)] = target_info
             start_sb += band_size

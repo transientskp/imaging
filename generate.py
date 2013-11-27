@@ -2,7 +2,6 @@
 
 import os
 import sys
-import textwrap
 import lofar.parameterset
 
 from utility import make_directory
@@ -16,25 +15,12 @@ from utility import sorted_ms_list
 #SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
 
 # Settings for Cycle 0 RSM runs
+# Adjusted for use on the grid: everything is relative to the start directory.
 N_BEAMS = 6
 BAND_SIZE = [10, 10, 10, 10]
-INPUT_DIR = "/home/jswinban/test_run"
-OUTPUT_DIR = "/home/jswinban/test_run_output"
-SKYMODEL_DIR = "/home/jswinban/imaging/skymodels"
-
-TEMPLATE_JOB = """
-    #PBS -lwalltime=7:00:00
-                             # 7 hours wall-clock
-                             # time allowed for this job
-    #PBS -lnodes=1:ppn=8
-                             # 1 node for this job
-    #PBS -S /bin/bash
-    source /home/jswinban/sw/init.sh
-    source /home/jswinban/sw/lofim/lofarinit.sh
-    cd %s
-    time python /home/jswinban/imaging/imaging-multibeam.py %s
-"""
-TEMPLATE_JOB = textwrap.dedent(TEMPLATE_JOB).strip()
+INPUT_DIR = os.path.join(os.getcwd(), "test_run")
+OUTPUT_DIR = os.path.join(os.getcwd(), "test_run_output")
+SKYMODEL_DIR = os.path.join(os.getcwd(), "skymodels")
 
 if __name__ == "__main__":
     target_obsid = sys.argv[1]
@@ -72,7 +58,3 @@ if __name__ == "__main__":
     parset.replace("skymodel_dir", SKYMODEL_DIR)
     parset_filename = os.path.join(TARGET_OUTPUT, target_obsid + ".parset")
     parset.writeFile(parset_filename)
-
-    job = TEMPLATE_JOB % (TARGET_OUTPUT, parset_filename)
-    with open(os.path.join(TARGET_OUTPUT, target_obsid + ".job"), "w") as jobfile:
-        jobfile.write(job)
