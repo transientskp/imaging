@@ -11,7 +11,7 @@ target_input_glob = /scratch/jds/input/L107846/*_uv.dppp.MS
 n_beams = 6
 band_size = [10, 10, 10, 10]
 output_dir = /scratch/jds/output/L107846
-skymodel_dir = /home/jswinban/imaging/skymodels
+skymodel_dir = {cwd}/imaging/skymodels
 
 # GSM configuration
 gsm.db_host = loui
@@ -59,11 +59,11 @@ calcal.parset.Step.correct.Model.Beam.Enable = T
 calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # Clipping of calibrator parmdbs
-pdbclip.executable = /home/jswinban/edit-parmdb/edit_parmdb.py
+pdbclip.executable = {cwd}/edit-parmdb/edit_parmdb.py
 pdbclip.sigma = 1.0
 
 # Transfer solution from calibrator to target
-transfer.skymodel = /home/jswinban/imaging/skymodels/dummy.skymodel
+transfer.skymodel = {cwd}/imaging/skymodels/dummy.skymodel
 transfer.parset.Strategy.InputColumn = DATA
 transfer.parset.Strategy.ChunkSize = 0
 transfer.parset.Strategy.UseSolver = F
@@ -119,9 +119,6 @@ phaseonly.parset.Step.correct.Model.Phasors.Enable  = T
 phaseonly.parset.Step.correct.Model.Gain.Enable  = T
 phaseonly.parset.Step.correct.Model.Beam.Enable  = F
 phaseonly.parset.Step.correct.Output.Column = CORRECTED_DATA
-
-# Initialization script for special awimager environment
-awimager.initscript = /home/jswinban/sw/awimager/lofarinit.sh
 
 # AWimager parameters for noise calculation
 noise.box_size = 25                # int

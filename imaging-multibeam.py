@@ -36,7 +36,7 @@ from utility import generate_skymodel
 if __name__ == "__main__":
     # All temporary writes go to scratch space.
     # NB should clean up when we exit.
-    scratch = tempfile.mkdtemp(prefix=os.getenv("TMPDIR"))
+    scratch = tempfile.mkdtemp(dir=os.getenv("TMPDIR"))
 
     # Our single command line argument is a parset containing all
     # configuration information we'll need.
@@ -228,9 +228,6 @@ if __name__ == "__main__":
     with time_code("Limiting maximum baseline length"):
         pool.map(limit_bl, ms_target.values())
 
-    # We source a special build for using the "new" awimager
-    awim_init = input_parset.getString("awimager.initscript")
-
     # Calculate the threshold for cleaning based on the noise in a dirty map
     # We don't use our threadpool here, since awimager is parallelized
     noise_parset_name = get_parset_subset(input_parset, "noise.parset", scratch)
@@ -255,8 +252,7 @@ if __name__ == "__main__":
                     "threshold": "%fJy" % (target_info["threshold"],),
                     "image": target_info["output_im"],
                     "wmax": maxbl
-                },
-                initscript=awim_init
+                }
             )
             print "Updaging metadata in %s" % target_info["output_im"]
             run_process(
