@@ -11,7 +11,7 @@ target_input_glob = /scratch/jds/input/L107846/*_uv.dppp.MS
 n_beams = 6
 band_size = [10, 10, 10, 10]
 output_dir = /scratch/jds/output/L107846
-skymodel_dir = {cwd}/imaging/skymodels
+skymodel_dir = {root_dir}/skymodels
 
 # GSM configuration
 gsm.db_host = loui
@@ -25,7 +25,7 @@ gsm.vlss_cutoff = 0.1
 gsm.assoc_theta = 0.00278
 
 # Calibration of calibrator subbands
-calcal.nthreads = 6 # 0 == number of CPU cores
+calcal.nthreads = 0 # 0 == number of CPU cores
 calcal.parset.Strategy.InputColumn = DATA
 calcal.parset.Strategy.ChunkSize = 0
 calcal.parset.Strategy.Baselines = CS*&RS*;RS*&;CS*&
@@ -59,11 +59,11 @@ calcal.parset.Step.correct.Model.Beam.Enable = T
 calcal.parset.Step.correct.Output.Column = CORRECTED_DATA
 
 # Clipping of calibrator parmdbs
-pdbclip.executable = {cwd}/edit-parmdb/edit_parmdb.py
+pdbclip.executable = {root_dir}/edit-parmdb/edit_parmdb.py
 pdbclip.sigma = 1.0
 
 # Transfer solution from calibrator to target
-transfer.skymodel = {cwd}/imaging/skymodels/dummy.skymodel
+transfer.skymodel = {root_dir}/skymodels/dummy.skymodel
 transfer.parset.Strategy.InputColumn = DATA
 transfer.parset.Strategy.ChunkSize = 0
 transfer.parset.Strategy.UseSolver = F

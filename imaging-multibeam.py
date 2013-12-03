@@ -128,7 +128,7 @@ if __name__ == "__main__":
     def calibrate_calibrator(cal):
         source = table("%s::OBSERVATION" % (cal,)).getcol("LOFAR_TARGET")['array'][0].lower().replace(' ', '')
         skymodel = os.path.join(
-            input_parset.getString("skymodel_dir"),
+            input_parset.getString("skymodel_dir", {"root_dir": root_dir}),
             "%s.skymodel" % (source,)
         )
         print "Calibrating %s with skymodel %s" % (cal, skymodel)
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     # Clip calibrator parmdbs
     def clip_parmdb(sb):
         run_process(
-            input_parset.getString("pdbclip.executable"),
+            input_parset.getString("pdbclip.executable", {"root_dir": root_dir}),
             "--auto",
             "--sigma=%f" % (input_parset.getFloat("pdbclip.sigma"),),
             os.path.join(sb, "instrument")
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     # Transfer calibration solutions to targets
     transfer_parset = get_parset_subset(input_parset, "transfer.parset", scratch)
-    transfer_skymodel = input_parset.getString("transfer.skymodel")
+    transfer_skymodel = input_parset.getString("transfer.skymodel", {"root_dir": root_dir})
     clear_calibrate_stand_alone_logs()
     def transfer_calibration(ms_pair):
         cal, target = ms_pair
@@ -243,6 +243,7 @@ if __name__ == "__main__":
             )
             print "Threshold for %s is %f Jy" % (target_info["output_ms"], target_info["threshold"])
 
+    aw_parset_name = get_parset_subset(input_parset, "image.parset", scratch)
     with time_code("Making images"):
         for target_info in ms_target.values():
             print "Making image %s" % target_info["output_im"]
