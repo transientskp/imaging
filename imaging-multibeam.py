@@ -33,14 +33,31 @@ from utility import estimate_noise
 from utility import sorted_ms_list
 from utility import generate_skymodel
 
+from parset import parameterset
+
+def print_usage():
+    print "Usage: "
+    print "  %s <parset> <calibrator-glob> <target-glob>" % sys.argv[0]
+
 if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print_usage()
+        sys.exit(1)
+
+    # Filenames can be relative to the initial working dir.
+    root_dir = os.getcwd()
+
     # All temporary writes go to scratch space.
     # NB should clean up when we exit.
     scratch = tempfile.mkdtemp(dir=os.getenv("TMPDIR"))
 
     # Our single command line argument is a parset containing all
     # configuration information we'll need.
-    input_parset = lofar.parameterset.parameterset(sys.argv[1])
+    input_parset = parameterset(sys.argv[1])
+
+    # We will read the calibrator and target data according to these patterns.
+    calibrator_input_glob = sys.argv[2]
+    target_input_glob = sys.argv[3]
 
     # We require `sbs_per_beam` input MeasurementSets for each beam, including
     # the calibrator.
