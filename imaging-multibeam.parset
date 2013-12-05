@@ -8,7 +8,7 @@ cal_obsid = L107845
 target_obsid = L107846
 n_beams = 6
 band_size = [10, 10, 10, 10]
-output_dir = /scratch/jds/output/L107846
+output_dir = {root_dir}/output/L107846
 skymodel_dir = {root_dir}/skymodels
 
 # GSM configuration

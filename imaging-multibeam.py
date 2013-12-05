@@ -69,7 +69,7 @@ if __name__ == "__main__":
     ms_cal["datafiles"] = sorted_ms_list(input_parset.getString("calibrator_input_glob"))
     assert(len(ms_cal["datafiles"]) == sbs_per_beam)
     ms_cal["output_dir"] = os.path.join(
-        input_parset.getString("output_dir"),
+        input_parset.getString("output_dir", {"root_dir": root_dir}),
         "calibrator",
         input_parset.getString("cal_obsid")
     )
@@ -99,7 +99,7 @@ if __name__ == "__main__":
             assert(len(target_info['datafiles']) == len(target_info['calfiles']))
 
             target_info['output_dir'] = os.path.join(
-                input_parset.getString("output_dir"),
+                input_parset.getString("output_dir", {"root_dir": root_dir}),
                 "target",
                 input_parset.getString("target_obsid"),
                 "SAP00%d" % (beam,)

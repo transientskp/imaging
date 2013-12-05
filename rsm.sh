@@ -70,50 +70,39 @@ for i in ${prep_files_dir}/L107845/*.tar; do tar -xf $i -C L107845/L107845; done
 for i in ${prep_files_dir}/L107846/*.tar; do tar -xf $i -C L107846/L107846; done
 
 rm -rf ${prep_files_dir}
-#
-#echo ""
-#echo "Untar scripts"
-#tar -xvf scripts.tar
-#echo ""
-#echo "Untar skymodels"
-#tar -xvf skymodels.tar
-#
-#echo ""
-#echo "cleaning temp files in scratch from previous runs"
-#rm -rf $TMPDIR/rsm
-#echo "creating new temp file in TMPDIR"
-#mkdir $TMPDIR/rsm
-#
-#echo ""
-#echo "Executing imaging-multibeam.py"
-#time python scripts/imaging-multibeam.py scripts/imaging-multibeam.parset > nohup.out
-#
-##echo ""
-##echo " Tar output images"
-#tar cvf output.tar output/
-#
-#echo ""
-#echo "Copy output.tar and nohup.out to the worker node"
-#srmrm -r srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/
-#srmmkdir srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845
-#lcg-cp --vo lofar file:`pwd`/nohup.out srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/nohup.out
-#lcg-cp --vo lofar file:`pwd`/output.tar srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/output.tar
-#
-#echo ""
-#echo "List the files copied to the SE lofar/user/disk:"
-#srmls srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845
-#
-#echo ""
-#echo "listing final files"
-#ls -allh $PWD
-#echo ""
-#du -hs $PWD
-#du -hs $PWD/*
-#du -h *
-#
-#echo ""
-#echo "cleaning temp files in scratch"
-#rm -rf $TMPDIR/rsm
+
+du -sch ${input_dir}
+
+echo ""
+echo "Executing imaging-multibeam.py"
+time python scripts/imaging-multibeam.py scripts/imaging-multibeam.parset ${input_dir}/L107845/\* ${input_dir}/L107846/\* > nohup.out
+
+echo ""
+echo " Tar output images"
+ar cvf output.tar output/
+
+echo ""
+echo "Copy output.tar and nohup.out to the worker node"
+srmrm -r srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/
+srmmkdir srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845
+lcg-cp --vo lofar file:`pwd`/nohup.out srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/nohup.out
+lcg-cp --vo lofar file:`pwd`/output.tar srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/output.tar
+
+echo ""
+echo "List the files copied to the SE lofar/user/disk:"
+srmls srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845
+
+echo ""
+echo "listing final files"
+ls -allh $PWD
+echo ""
+du -hs $PWD
+du -hs $PWD/*
+du -h *
+
+echo ""
+echo "cleaning temp files in scratch"
+rm -rf $TMPDIR/rsm
 
 echo ""
 echo `date`
