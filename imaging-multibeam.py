@@ -66,7 +66,7 @@ if __name__ == "__main__":
     print "Locating calibrator data and checking paths"
 
     ms_cal = {}
-    ms_cal["datafiles"] = sorted_ms_list(input_parset.getString("calibrator_input_glob"))
+    ms_cal["datafiles"] = sorted_ms_list(calibrator_input_glob)
     assert(len(ms_cal["datafiles"]) == sbs_per_beam)
     ms_cal["output_dir"] = os.path.join(
         input_parset.getString("output_dir", {"root_dir": root_dir}),
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # We need n_beams * sbs_per_beam MSs. If we have more than that, we trim
     # the array; if less, we'll trigger the assertion.
-    target_mss = sorted_ms_list(input_parset.getString("target_input_glob"))
+    target_mss = sorted_ms_list(target_input_glob)
     target_mss = target_mss[:input_parset.getInt("n_beams") * sbs_per_beam]
     assert(len(target_mss) == input_parset.getInt("n_beams") * sbs_per_beam)
 

@@ -66,8 +66,8 @@ mkdir -p ${input_dir}/L107845
 mkdir -p ${input_dir}/L107846
 
 # Untar files
-for i in ${prep_files_dir}/L107845/*.tar; do tar -xf $i -C L107845/L107845; done
-for i in ${prep_files_dir}/L107846/*.tar; do tar -xf $i -C L107846/L107846; done
+for i in ${prep_files_dir}/L107845/*.tar; do tar -xf $i -C ${input_dir}/L107845; done
+for i in ${prep_files_dir}/L107846/*.tar; do tar -xf $i -C ${input_dir}/L107846; done
 
 rm -rf ${prep_files_dir}
 
@@ -75,7 +75,7 @@ du -sch ${input_dir}
 
 echo ""
 echo "Executing imaging-multibeam.py"
-time python scripts/imaging-multibeam.py scripts/imaging-multibeam.parset ${input_dir}/L107845/\* ${input_dir}/L107846/\* > nohup.out
+time python imaging-multibeam.py imaging-multibeam.parset ${input_dir}/L107845/\* ${input_dir}/L107846/\* > nohup.out
 
 echo ""
 echo " Tar output images"
@@ -102,7 +102,7 @@ du -h *
 
 echo ""
 echo "cleaning temp files in scratch"
-rm -rf $TMPDIR/rsm
+rm -rf ${input_dir}
 
 echo ""
 echo `date`
