@@ -73,17 +73,23 @@ rm -rf ${prep_files_dir}
 
 du -sch ${input_dir}
 
+echo "Fetching processing scripts..."
+git clone -b grid https://github.com/transientskp/imaging.git ./imaging
+cd imaging
+
 echo ""
 echo "Executing imaging-multibeam.py"
 time python imaging-multibeam.py imaging-multibeam.parset ${input_dir}/L107845/\* ${input_dir}/L107846/\* > nohup.out
 
 echo ""
 echo " Tar output images"
-ar cvf output.tar output/
+tar cvf output.tar output/
 
 echo ""
 echo "Copy output.tar and nohup.out to the worker node"
-srmrm -r srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/
+srmrm srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/output.tar
+srmrm srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/nohup.out
+srmrmdir -recursive srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845
 srmmkdir srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845
 lcg-cp --vo lofar file:`pwd`/nohup.out srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/nohup.out
 lcg-cp --vo lofar file:`pwd`/output.tar srm://srm.grid.sara.nl:8443/pnfs/grid.sara.nl/data/lofar/user/disk/RSM/L107845/output.tar

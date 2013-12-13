@@ -2,7 +2,8 @@ Executable = "/bin/sh";
 Arguments = "rsm.sh";
 Stdoutput = "rsm.out";
 StdError = "rsm.err";
-InputSandbox = {"L107845.txt", "L107846.txt", "imaging-multibeam.parset", "imaging-multibeam.py", "skymodels/3c147.skymodel",  "skymodels/3c196.skymodel", "skymodels/3c286.skymodel", "skymodels/3c287.skymodel",  "skymodels/3c295.skymodel", "skymodels/3c380.skymodel", "skymodels/3c48.skymodel", "skymodels/calibrators.skymodel", "skymodels/cyga.skymodel",  "skymodels/dummy.skymodel", "utility.py", "parset.py", "edit-parmdb/edit-parmdb.py", "edit-parmdb/parmdb/complexarray.py", "edit-parmdb/parmdb/__init__.py", "edit-parmdb/parmdb/parmdb.py", "edit-parmdb/parmdb/stationgain.py", "edit-parmdb/parmdb/utils.py"} 
+#InputSandbox = {"L107845.txt", "L107846.txt", "imaging-multibeam.parset", "imaging-multibeam.py", "skymodels/3c147.skymodel",  "skymodels/3c196.skymodel", "skymodels/3c286.skymodel", "skymodels/3c287.skymodel",  "skymodels/3c295.skymodel", "skymodels/3c380.skymodel", "skymodels/3c48.skymodel", "skymodels/calibrators.skymodel", "skymodels/cyga.skymodel",  "skymodels/dummy.skymodel", "utility.py", "parset.py", "edit-parmdb/edit_parmdb.py", "edit-parmdb/parmdb/complexarray.py", "edit-parmdb/parmdb/__init__.py", "edit-parmdb/parmdb/parmdb.py", "edit-parmdb/parmdb/stationgain.py", "edit-parmdb/parmdb/utils.py"};
+InputSandbox = {"L107845.txt", "L107846.txt", "rsm.sh"};
 
 OutputSandbox = {"rsm.out", "rsm.err"};
 DataAccessProtocol = {"gsiftp"};
