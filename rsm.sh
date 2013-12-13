@@ -80,6 +80,7 @@ cd imaging
 echo ""
 echo "Executing imaging-multibeam.py"
 time python imaging-multibeam.py imaging-multibeam.parset ${input_dir}/L107845/\* ${input_dir}/L107846/\* > nohup.out
+echo "Done imaging"
 
 echo ""
 echo " Tar output images"
